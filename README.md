@@ -8,7 +8,7 @@ build the container with
 ```
 sbt docker:publishLocal
 
-docker run -p 8080:8080 maana_fast_scheduler:latest:latest
+docker run -p 8080:8080 maana_fast_scheduler:latest
 
 ### Service Endpoint
 ```
@@ -18,75 +18,8 @@ http://<hostname>:8080/graphql
 
 ### Service Inputs
 
-##Vessels
+VesselWithQ88AndStatus
 
- { 
-	id: "12345"
-  	name: "mike's vessel"
-  	dimensions:{
-	  id: "999"
-	  beam: 10
-	  overallLength: 10
-	  aftParallelBodyDistance: 10
-	  forwardParallelBodyDistance: 10
-  	}
-    speedCapabilities: {
-        id: "999"
-      ladenEconomicSpeed: 10
-      ladenMaxSpeed: 10
-      ballastEconomicSpeed: 10
-      ballastMaxSpeed: 10
-
-    }
-    carryingCapacity:{
-       id: "999"
-      fuelCapacity: 1000
-      diesalCapacity: 1000
-      gasOilCapacity: 1000
-    }
-    currentStatus: {
-        id: "999"
-        availableFrom: "2019-12-16T00:00:00.000Z"
-        lastKnownPort: "SAYNB" 
-        lastProduct: "Raffinates"
-        startingFuel: 616.0
-    }
-    clean: "C"
-    details: {
-		  id: "vessel details"
-		  charteringCost: 1000
-		  contractExpiration: "2021-11-16"
-		  scnt: 50000.0
-		  sizeCategory: "LR"
-		 totalProductCapacity: 10000
-		 cleaningTimeMultiplier: 1
-		 cargoPumpingRateM3PerS: 20
-    	imoClass: "mikes class"
- 	}
-    portRestrictions: []
-    bunkerRequirements:  {
-        id: "999"
-        laden_speed_11: 10
-        laden_speed_12: 10
-        laden_speed_12_5: 10
-        laden_speed_13: 10
-        laden_speed_13_5: 10
-        laden_speed_14: 10
-        laden_speed_14_5: 10
-        laden_speed_15: 10
-        ballast_speed_11: 10
-        ballast_speed_12: 10
-        ballast_speed_12_5: 10
-        ballast_speed_13: 10
-        ballast_speed_13_5: 10
-        ballast_speed_14: 10
-        ballast_speed_14_5: 10
-        ballast_speed_15: 10
-        no_eca_cold_cleaning: 10.0
-        no_eca_hot_cleaning: 10.0
-    }
-        unavailableTimes:[]
-    }
 
 ### Service configuration
 

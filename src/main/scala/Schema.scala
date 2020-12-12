@@ -260,22 +260,23 @@ object Schema {
 
   }
 
-  def toVesselsWithDimensions(vessels: Seq[VesselInput]) : Seq[VesselWithDimensions] = {
+  //maps the input (VesselWithq88AndStatus to the vessel used in this service)
+  def toVesselsWithDimensions(vessels: Seq[VesselWithQ88AndStatusInput]) : Seq[VesselWithDimensions] = {
     vessels.map { in =>
       VesselWithDimensions(
         id = in.id,
-        startDate = in.currentStatus.availableFrom.toDate.getTime / 1000,
-        startFuel = in.currentStatus.startingFuel,
-        startLocation = in.currentStatus.lastKnownPort,
+        startDate = in.vessel.currentStatus.availableFrom.toDate.getTime / 1000,
+        startFuel = in.vessel.currentStatus.startingFuel,
+        startLocation = in.vessel.currentStatus.lastKnownPort,
         lastProduct = {
-          val prod = productMappings.getOrElse(in.currentStatus.lastProduct.toLowerCase, { println(s"WARNING: no entry in mapping for product ${in.currentStatus.lastProduct}, no cleaning time calculated"); "" })
-          Product(prod, in.currentStatus.lastProduct)
+          val prod = productMappings.getOrElse(in.vessel.currentStatus.lastProduct.toLowerCase, { println(s"WARNING: no entry in mapping for product ${in.vessel.currentStatus.lastProduct}, no cleaning time calculated"); "" })
+          Product(prod, in.vessel.currentStatus.lastProduct)
         },
-        portRestrictions = toPortRestrictions(in.portRestrictions.getOrElse(Seq.empty)),
+        portRestrictions = toPortRestrictions(in.vessel.portRestrictions.getOrElse(Seq.empty)),
         //what is terminalRestrictions used for?
-        terminalRestrictions = toTerminalRestrictions(in.portRestrictions.getOrElse(Seq.empty)),
+        terminalRestrictions = toTerminalRestrictions(in.vessel.portRestrictions.getOrElse(Seq.empty)),
         unvailableTimes = combineRanges(
-          in.unavailableTimes.getOrElse(Seq.empty)
+          in.vessel.unavailableTimes.getOrElse(Seq.empty)
             .map(a =>
               UnavailableTime(
                 dateRange = toDateRange(a.dateRange),
@@ -311,58 +312,58 @@ object Schema {
         dimensions = {
           VesselDimensions(
               id = in.id,
-              name = in.name,
-              sizeCategory = in.details.sizeCategory,
-              fuelCapacity = in.carryingCapacity.fuelCapacity,
-              ballastEconomicSpeed = in.speedCapabilities.ballastEconomicSpeed,
-              ballastMaxSpeed =in.speedCapabilities.ballastMaxSpeed,
-              ladenEconomicSpeed =in.speedCapabilities.ladenEconomicSpeed,
-              ladenMaxSpeed = in.speedCapabilities.ladenMaxSpeed,
-              totalProductCapacityM3 = in.details.totalProductCapacity,
-              beam =in.dimensions.beam,
-              overallLength = in.dimensions.overallLength,
-              aftParallelBodyDistance = in.dimensions.aftParallelBodyDistance,
-              forwardParallelBodyDistance = in.dimensions.forwardParallelBodyDistance,
+              name = in.vessel.name,
+              sizeCategory = in.vessel.details.sizeCategory,
+              fuelCapacity = in.q88Vessel.carryingCapacity.fuelCapacity,
+              ballastEconomicSpeed = in.q88Vessel.speedCapabilities.ballastEconomicSpeed,
+              ballastMaxSpeed =in.q88Vessel.speedCapabilities.ballastMaxSpeed,
+              ladenEconomicSpeed =in.q88Vessel.speedCapabilities.ladenEconomicSpeed,
+              ladenMaxSpeed = in.q88Vessel.speedCapabilities.ladenMaxSpeed,
+              totalProductCapacityM3 = in.q88Vessel.totalProductCapacity,
+              beam =in.q88Vessel.dimensions.beam,
+              overallLength = in.q88Vessel.dimensions.overallLength,
+              aftParallelBodyDistance = in.q88Vessel.dimensions.aftParallelBodyDistance,
+              forwardParallelBodyDistance = in.q88Vessel.dimensions.forwardParallelBodyDistance,
               ladenBunkerRequirmentsMtPerDay = Map(
-                  (10 * 2).toInt    ->   in.bunkerRequirements.ballast_speed_11,         // No 10
-                  (10.5 * 2).toInt  ->   in.bunkerRequirements.ballast_speed_11,       // No 10.5
-                  (11 * 2).toInt    ->   in.bunkerRequirements.ballast_speed_11,
-                  (11.5 * 2).toInt  ->   in.bunkerRequirements.ballast_speed_11,       // No 11.5
-                  (12 * 2).toInt    ->   in.bunkerRequirements.ballast_speed_12,
-                  (12.5 * 2).toInt  ->   in.bunkerRequirements.ballast_speed_12_5,
-                  (13 * 2).toInt    ->   in.bunkerRequirements.ballast_speed_13,
-                  (13.5 * 2).toInt  ->   in.bunkerRequirements.ballast_speed_13_5,
-                  (14 * 2).toInt    ->   in.bunkerRequirements.ballast_speed_14,
-                  (14.5 * 2).toInt  ->   in.bunkerRequirements.ballast_speed_14_5,
-                  (15 * 2).toInt    ->   in.bunkerRequirements.ballast_speed_15,
-                  (15.5 * 2).toInt  ->   in.bunkerRequirements.ballast_speed_15,       // No 15.5
+                  (10 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_11,         // No 10
+                  (10.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_11,       // No 10.5
+                  (11 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_11,
+                  (11.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_11,       // No 11.5
+                  (12 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_12,
+                  (12.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_12_5,
+                  (13 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_13,
+                  (13.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_13_5,
+                  (14 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_14,
+                  (14.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_14_5,
+                  (15 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_15,
+                  (15.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_15,       // No 15.5
                 ),
 
               ballastBunkerRequirmentsMtPerDay = Map(
-                  (10 * 2).toInt    ->  in.bunkerRequirements.laden_speed_11,           // No 10
-                  (10.5 * 2).toInt  ->  in.bunkerRequirements.laden_speed_11,         // No 10.5
-                  (11 * 2).toInt    ->  in.bunkerRequirements.laden_speed_11,
-                  (11.5 * 2).toInt  ->  in.bunkerRequirements.laden_speed_11,         // No 11.5
-                  (12 * 2).toInt    ->  in.bunkerRequirements.laden_speed_12,
-                  (12.5 * 2).toInt  ->  in.bunkerRequirements.laden_speed_12_5,
-                  (13 * 2).toInt    ->  in.bunkerRequirements.laden_speed_13,
-                  (13.5 * 2).toInt  ->  in.bunkerRequirements.laden_speed_13_5,
-                  (14 * 2).toInt    ->  in.bunkerRequirements.laden_speed_14,
-                  (14.5 * 2).toInt  ->  in.bunkerRequirements.laden_speed_14_5,
-                  (15 * 2).toInt    ->  in.bunkerRequirements.laden_speed_15,
-                  (15.5 * 2).toInt  ->  in.bunkerRequirements.laden_speed_15,         // No 15.5
+                  (10 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_11,           // No 10
+                  (10.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_11,         // No 10.5
+                  (11 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_11,
+                  (11.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_11,         // No 11.5
+                  (12 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_12,
+                  (12.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_12_5,
+                  (13 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_13,
+                  (13.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_13_5,
+                  (14 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_14,
+                  (14.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_14_5,
+                  (15 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_15,
+                  (15.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_15,         // No 15.5
               ),
-              cleaningTimeMultiplier = in.details.cleaningTimeMultiplier,
+              cleaningTimeMultiplier = in.vessel.details.cleaningTimeMultiplier,
               cleaningRates = Vector(
                   0,
-                  in.bunkerRequirements.no_eca_cold_cleaning.foldLeft(0.0){ case (a,b) => a+b },
-                  in.bunkerRequirements.no_eca_hot_cleaning.foldLeft(0.0){ case (a,b) => a+b}
+                  in.vessel.bunkerRequirements.no_eca_cold_cleaning.foldLeft(0.0){ case (a,b) => a+b },
+                  in.vessel.bunkerRequirements.no_eca_hot_cleaning.foldLeft(0.0){ case (a,b) => a+b}
               ),
-              cleanStatus = in.clean,
+              cleanStatus = in.vessel.clean,
               //not used or at least in the vessel model its null
-              imoClass = in.details.imoClass,
-              scnt = in.details.scnt,
-              cargoPumpingRateM3PerS = in.details.cargoPumpingRateM3PerS,
+              imoClass = in.q88Vessel.imoClass,
+              scnt = in.q88Vessel.scnt,
+              cargoPumpingRateM3PerS = in.q88Vessel.cargoPumpingRateM3PerS,
 
           )
 
@@ -370,11 +371,11 @@ object Schema {
         contract = {
           VesselContract(
             vesselId = in.id,
-            dailyCharterCost = in.details.charteringCost,
-            expiration = Scalars.parseDate(in.details.contractExpiration).toOption
+            dailyCharterCost = in.vessel.details.charteringCost,
+            expiration = Scalars.parseDate(in.vessel.details.contractExpiration).toOption
               .map {
                 d => d.toDate.getTime/1000
-              }.getOrElse{ println(s"WARNING - Could not parse contract Date ${in.details.contractExpiration}"); Long.MaxValue}
+              }.getOrElse{ println(s"WARNING - Could not parse contract Date ${in.vessel.details.contractExpiration}"); Long.MaxValue}
           )
 
         } 
@@ -521,7 +522,7 @@ object Schema {
         """.stripMargin
       )
       @GraphQLField
-      def schedules(date: DateTime, vessels: Seq[VesselInput], requirements: Seq[RequirementInput]): String = Profile.prof("Query: schedules") {
+      def schedules(date: DateTime, vessels: Seq[VesselWithQ88AndStatusInput], requirements: Seq[RequirementInput]): String = Profile.prof("Query: schedules") {
       implicit val executionContext0 = executionContext
 
       val d = date.toDate.getTime / 1000

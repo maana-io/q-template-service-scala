@@ -67,12 +67,9 @@ object QueryInputs {
     id: String,
     charteringCost: Double,
     contractExpiration: String,
-    scnt: Double,
     sizeCategory: String,
-    totalProductCapacity: Double,
     cleaningTimeMultiplier: Double,
-    cargoPumpingRateM3PerS: Double,
-    imoClass: String,
+   
   )
   @GraphQLDescription(""""Vessel Bunker Requirements """")
   case class BunkerRequirements(
@@ -102,15 +99,33 @@ object QueryInputs {
   @GraphQLDescription("""Initial state of the vessel and at what point it becomes free for scheduling. Passing empty string as the lastProduct stops cleaning being scheduled for the first requirement. product can be specified as either an aramco product or a BP product""")
   case class VesselInput(id: VesselId, 
                          name: String,
-                          dimensions: VesselDimensions,
-                          speedCapabilities: SpeedCapabilities,
-                          carryingCapacity: CarryingCapacity,
                           currentStatus: CurrentStatus,
                           clean: String,
                           details: VesselDetails,
+                          isParked: Boolean,
                           portRestrictions: Option[Seq[PortRestriction]], 
                           bunkerRequirements: BunkerRequirements,
                           unavailableTimes: Option[Seq[UnavailableTime]],
+  )
+
+  @GraphQLDescription(""" q88 vessel model """")
+  case class Q88VesselInput(
+    id: VesselId,
+    name: String,
+    dimensions: VesselDimensions,
+    speedCapabilities: SpeedCapabilities,
+    carryingCapacity: CarryingCapacity,
+    totalProductCapacity: Double,
+    cleaningTimeMultiplier: Double,
+    cargoPumpingRateM3PerS: Double,
+    scnt: Double,
+    imoClass: String,
+  )
+  @GraphQLDescription(""" new vessesl model """")
+  case class VesselWithQ88AndStatusInput(
+      id: VesselId,
+      q88Vessel: Q88VesselInput,
+      vessel: VesselInput,
   )
 
   @GraphQLDescription("""Used for both Longs and Shorts. Product can be specified as either an aramco product or a BP product""")
@@ -139,21 +154,26 @@ object QueryInputs {
 
   // sangira stuff that builds the schema
   implicit val NameInputType = deriveInputObjectType[NameInput]()
+  implicit val DateRangeInputType = deriveInputObjectType[DateRangeInput]()
   implicit val VesselDimensionType = deriveInputObjectType[VesselDimensions]()
   implicit val SpeedCapabilitiesType = deriveInputObjectType[SpeedCapabilities]()
   implicit val CarryingCapacityType = deriveInputObjectType[CarryingCapacity]()
   implicit val CurrentStatusType = deriveInputObjectType[CurrentStatus]()
   implicit val BunkerRequirementsType =deriveInputObjectType[BunkerRequirements]()
-  implicit val VesselDetailsType = deriveInputObjectType[VesselDetails]()
-  implicit val ContstatnsType = deriveInputObjectType[Constants]()
-
-
-  implicit val DateRangeInputType = deriveInputObjectType[DateRangeInput]()
+  implicit val PortRestrictionType = deriveInputObjectType[PortRestriction]()
+  
   implicit val UnavailableTimeInputType = deriveInputObjectType[UnavailableTime]()
+  implicit val VesselDetailsType = deriveInputObjectType[VesselDetails]()
+  
+  implicit val VesselInputType = deriveInputObjectType[VesselInput]()
+  implicit val ContstantsType = deriveInputObjectType[Constants]()
+  implicit val Q88VesselInputType=deriveInputObjectType[Q88VesselInput]()
+
   implicit val VesselActionInputType = deriveInputObjectType[VesselActionInput]()
   implicit val RequirementInputType = deriveInputObjectType[RequirementInput]()
-  implicit val PortRestrictionType = deriveInputObjectType[PortRestriction]()
-  implicit val VesselInputType = deriveInputObjectType[VesselInput]()
+
+  implicit val VesselWithQ88AndStatusInputType = deriveInputObjectType[VesselWithQ88AndStatusInput]()
+
   implicit val VesselWithRequirementsInputType = deriveInputObjectType[VesselWithRequirementsInput]()
 
 
