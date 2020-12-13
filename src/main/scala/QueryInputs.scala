@@ -148,11 +148,11 @@ object QueryInputs {
 
   @GraphQLDescription(""" Constants used for optimization""")
   case class Constants(
-      defaultFuelPrice: Double, 
-      defaultDieselPrice: Double,
-      refuelThreshold: Double,
-      criticalRefuelThreshold: Double,
-      operationalOverhead: Double)
+      defaultFuelPrice: Int, 
+      defaultDieselPrice: Int,
+      refuelThreshold: Int,
+      criticalRefuelThreshold: Int,
+      operationalOverhead: Int)
 
   // example configuration for inputs to resolvers
   type Name = String

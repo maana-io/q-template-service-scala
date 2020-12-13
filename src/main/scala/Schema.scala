@@ -62,6 +62,7 @@ object Schema {
   case class Product(id: String, originalId: String)
   //case class Product(id: String)
 
+
   case class VesselDimensions(id: VesselId,
                               name: String,
                               sizeCategory: String,
@@ -84,7 +85,6 @@ object Schema {
                               scnt: Double,
                               cargoPumpingRateM3PerS: Double
                              )
-
 
   // Vessel data needed for simulation
   //not sure what this does exactly
@@ -634,6 +634,8 @@ object Schema {
       val requirementsToSchedule = toSchemaRequirements(requirements, d, vesselsWithDimensions)
       //println(requirementsToSchedule)
 
+      Schedule.ConstantValues.createConstants(constants)
+
 
       val context = if (useGlobalDistanceCache) {
         Schedule.Context(portMap = Shared.portMap, distanceCache = globalDistanceCache)
@@ -660,7 +662,7 @@ object Schema {
             //schedules it by itself assuming no filtering
             //val vesselCandidates = requirementsToSchedule
             println(vesselCandidates)
-            Schedule.schedule(d, vessel, vesselCandidates, constants, context)
+            Schedule.schedule(d, vessel, vesselCandidates, context)
           }
         }
         val fin = Future.sequence(futures)

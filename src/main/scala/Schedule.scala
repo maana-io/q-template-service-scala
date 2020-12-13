@@ -36,11 +36,50 @@ object Schedule {
   val secondsPerDay: Double = secondsPerHour * hoursPerDay
 
   // approximate cost of fuel as used in python
-  val defaultFuelCost = 400
-  val defaultDieselCost = 650
-  val refuelThresholdAmmount = 400
-  val criticalFuelThresholdAmmount = 300
+
+
+  //val defaultFuelCost = 400
+  //val defaultDieselCost = 650
+  //val refuelThresholdAmmount = 400
+  //val criticalFuelThresholdAmmount = 300
   val operationalOverhead = 9 * secondsPerHour.toLong
+
+
+
+  object ConstantValues {
+    var defaultFuelCost = 0
+    var defaultDieselCost = 0
+    var refuelThresholdAmmount = 0
+    var criticalFuelThresholdAmmount = 0
+    var operationalOverhead = secondsPerHour.toLong
+      
+    def createConstants(constants: Constants){
+      
+
+      defaultFuelCost = constants.defaultFuelPrice
+      defaultDieselCost = constants.defaultDieselPrice
+      refuelThresholdAmmount = constants.refuelThreshold
+      criticalFuelThresholdAmmount = constants.criticalRefuelThreshold
+      operationalOverhead = constants.operationalOverhead * secondsPerHour.toLong
+
+      /*val constantValues = Constants(
+        defaultFuelPrice = constants.defaultFuelPrice, 
+        defaultDieselPrice = constants.defaultDieselPrice,
+        refuelThreshold = constants.refuelThreshold,
+        criticalRefuelThreshold = constants.criticalRefuelThreshold,
+        operationalOverhead = constants.operationalOverhead)
+
+        println(constantValues.defaultFuelPrice)*/
+  
+    }
+  }
+  
+  
+  
+  
+
+ 
+
 
 
   // Load up the cleaning times data
@@ -121,7 +160,7 @@ object Schedule {
         val fuel = vessel.fuelCapacity - currentFuel
         //TODO Port wait time
         val pumpRate = if (at.loadingPumpRateM3PerS < vessel.cargoPumpingRateM3PerS) at.loadingPumpRateM3PerS else vessel.cargoPumpingRateM3PerS
-        val duration = operationalOverhead + pumpingTime(pumpRate, fuel)
+        val duration = ConstantValues.operationalOverhead + pumpingTime(pumpRate, fuel)
         Some(RefuelingAction(duration, 0, -fuel, at, 0, 0, 0, 0, duration)) // Fuel cost is payed when using it
       } else {
         // TODO need a test case that triggers this
@@ -163,14 +202,14 @@ object Schedule {
 
             val fuelAdded = vessel.fuelCapacity - (currentFuel - fuelToRefuelingPoint)
             val pumpRate = if (at.loadingPumpRateM3PerS < vessel.cargoPumpingRateM3PerS) at.loadingPumpRateM3PerS else vessel.cargoPumpingRateM3PerS
-            val fuelingDuration = operationalOverhead + pumpingTime(pumpRate, fuelAdded)
+            val fuelingDuration = ConstantValues.operationalOverhead + pumpingTime(pumpRate, fuelAdded)
             val durationToDest = Math.ceil(d2 * secondsPerHour / speed).toLong
             val fuelToDest = (durationToDest / secondsPerDay) * fuelConsumedPerDay
             val newFuelAtTarget = vessel.fuelCapacity - fuelToDest
             val newDurationToTarget = durationToRefuelingPoint + fuelingDuration + durationToDest
 
             // Have to enter the new port and travel the additional distance, consuming additional fuel
-            val additionalFuelCost = (fuelToRefuelingPoint + fuelToDest - fuelToTarget) * defaultFuelCost
+            val additionalFuelCost = (fuelToRefuelingPoint + fuelToDest - fuelToTarget) * ConstantValues.defaultFuelCost
             val cost = bestPort.feeDollars + additionalFuelCost
 
             Some(RefuelingAction(newDurationToTarget - durationToTarget, cost, fuelAtTarget - newFuelAtTarget, bestPort, durationToRefuelingPoint, durationToDest, fuelToRefuelingPoint, fuelToDest, fuelingDuration))
@@ -216,9 +255,9 @@ object Schedule {
         }
         // println(s"The time to clean ${vessel.name} is ${cleaningTimeSeconds/3600} hours, originally this was ${timeModified/3600}.")
 
-        val durationCost = (cleaningTimeSeconds / secondsPerDay) * vessel.cleaningRates(rate) * defaultFuelCost
-        val fuelCost = fuel * defaultFuelCost
-        val dieselCost = diesel * defaultDieselCost
+        val durationCost = (cleaningTimeSeconds / secondsPerDay) * vessel.cleaningRates(rate) * ConstantValues.defaultFuelCost
+        val fuelCost = fuel * ConstantValues.defaultFuelCost
+        val dieselCost = diesel * ConstantValues.defaultDieselCost
         val totalCost = durationCost + fuelCost + dieselCost
 
         CleaningAction(totalCost, durationCost, fuelCost, dieselCost, fuel, cleaningTimeSeconds, requirementProduct)
@@ -306,7 +345,7 @@ object Schedule {
       val waitDuration = Math.max(0, (completeAfter - startDate) - (travelDuration + refuelDuration))
       // Cleaning can take place while travelling or waiting but not refueling
       val cleaningDuration = Math.max(0, cleaningAction.duration - (travelDuration + waitDuration))
-      val totalCost = fuelConsumed * defaultFuelCost + refuelingAction.cost + cleaningAction.totalCost + suezCost // based on unrefuled consumption cost Delta included in refueling action
+      val totalCost = fuelConsumed * ConstantValues.defaultFuelCost + refuelingAction.cost + cleaningAction.totalCost + suezCost // based on unrefuled consumption cost Delta included in refueling action
       // waiting is not done at ports, so assumed cost is just charter cost
       // Note we don't actually need to account for the charter cost, it's being paid no matter what the ship is doing
       val totalDuration = travelDuration + waitDuration + refuelDuration + cleaningDuration
@@ -354,7 +393,7 @@ object Schedule {
   object Load {
     def apply(port: Schema.Port, action: Schema.PortAction, vessel: Schema.VesselDimensions): Load = {
       val pumpRate = if (port.loadingPumpRateM3PerS < vessel.cargoPumpingRateM3PerS) port.loadingPumpRateM3PerS else vessel.cargoPumpingRateM3PerS
-      val duration = operationalOverhead + pumpingTime(pumpRate, action.productQuantityM3)
+      val duration = ConstantValues.operationalOverhead + pumpingTime(pumpRate, action.productQuantityM3)
       // Note we don't actually need to account for the charter cost, it's being paid no matter what the ship is doing
       // Poet costs are just the one time berthing fees.
       val cost = port.feeDollars
@@ -374,7 +413,7 @@ object Schedule {
   object Unload {
     def apply(port: Schema.Port, action: Schema.PortAction, vessel: Schema.VesselDimensions): Unload = {
       val pumpRate = if (port.loadingPumpRateM3PerS < vessel.cargoPumpingRateM3PerS) port.loadingPumpRateM3PerS else vessel.cargoPumpingRateM3PerS
-      val duration = operationalOverhead + pumpingTime(pumpRate, action.productQuantityM3)
+      val duration = ConstantValues.operationalOverhead + pumpingTime(pumpRate, action.productQuantityM3)
       val cost = port.feeDollars
       new Unload(duration, cost, action.product, port, action.valid)
     }
@@ -511,9 +550,9 @@ object Schedule {
 
   def pumpingTime(pumpRate: Double, quantity: Double): Long = Math.ceil(quantity / pumpRate).toLong
 
-  def fuelLow(fuel: Double): Boolean = fuel < refuelThresholdAmmount
+  def fuelLow(fuel: Double): Boolean = fuel < ConstantValues.refuelThresholdAmmount
 
-  def fuelCritical(fuel: Double): Boolean = fuel < criticalFuelThresholdAmmount
+  def fuelCritical(fuel: Double): Boolean = fuel < ConstantValues.criticalFuelThresholdAmmount
 
 
   case class Context(
@@ -618,7 +657,7 @@ object Schedule {
   }
 
 
-  def schedule(now: Long, vessel: Schema.VesselWithDimensions, requirementsToSchedule: Seq[Schema.Requirement], constants: Constants, context: Context) = {
+  def schedule(now: Long, vessel: Schema.VesselWithDimensions, requirementsToSchedule: Seq[Schema.Requirement], context: Context) = {
     // TODO take into account current ongoing action/current ongoing Requirement
     val startingPort = vessel.startLocation
     val startingFuel = vessel.startFuel
@@ -687,10 +726,10 @@ object Schedule {
     println(s"Maximum Schedule depth = $maxdepth")
     println()
 
-//    res.map{s => walkSchedules(printScheduleRequirementIds, s) }
-//    res.map{s => walkSchedules(printScheduleRequirementEnds, s) }
-//    res.map{s => walkSchedules(printSchedule(startingFuel, scheduleStartTime), s) }
-//    println
+    //    res.map{s => walkSchedules(printScheduleRequirementIds, s) }
+    //    res.map{s => walkSchedules(printScheduleRequirementEnds, s) }
+    //    res.map{s => walkSchedules(printSchedule(startingFuel, scheduleStartTime), s) }
+    //    println
     // TODO - remove - End
 
 
@@ -896,7 +935,7 @@ object Schedule {
         (
           Some(ScheduleResults.Action(
             `type` = "voyage",
-            cost = actualCost(cost.refuelingAction.fuel1 * defaultFuelCost, cost.refuelingAction.travel1Duration),
+            cost = actualCost(cost.refuelingAction.fuel1 * ConstantValues.defaultFuelCost, cost.refuelingAction.travel1Duration),
             speed = cost.travelSpeed,
             startsAt = toDate(refueling0End),
             endState = ScheduleResults.State(
@@ -920,7 +959,7 @@ object Schedule {
           )),
           Some(ScheduleResults.Action(
             `type` = "voyage",
-            cost = actualCost( (cost.refuelingAction.fuel2 * defaultFuelCost) + cost.suezCost, cost.refuelingAction.travel2Duration),
+            cost = actualCost( (cost.refuelingAction.fuel2 * ConstantValues.defaultFuelCost) + cost.suezCost, cost.refuelingAction.travel2Duration),
             speed = cost.travelSpeed,
             startsAt = toDate(refuelEnds),
             endState = ScheduleResults.State(
@@ -942,7 +981,7 @@ object Schedule {
           } else {
             Some(ScheduleResults.Action(
               `type` = "voyage",
-              cost = actualCost(((cost.fuelConsumed - cost.refuelingAction.fuel) * defaultFuelCost) + cost.suezCost, cost.travelDuration),   // Account for refueling action at start
+              cost = actualCost(((cost.fuelConsumed - cost.refuelingAction.fuel) * ConstantValues.defaultFuelCost) + cost.suezCost, cost.travelDuration),   // Account for refueling action at start
               speed = cost.travelSpeed,
               startsAt = toDate(refueling0End),
               endState = ScheduleResults.State(
