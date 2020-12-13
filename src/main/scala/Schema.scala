@@ -625,7 +625,7 @@ object Schema {
         """.stripMargin
       )
       @GraphQLField
-      def schedules(date: DateTime, vessels: Seq[VesselWithQ88AndStatusInput], requirements: Seq[RequirementInput]): String = Profile.prof("Query: schedules") {
+      def schedules(date: DateTime, vessels: Seq[VesselWithQ88AndStatusInput], requirements: Seq[RequirementInput], constants: Constants): String = Profile.prof("Query: schedules") {
       implicit val executionContext0 = executionContext
 
       val d = date.toDate.getTime / 1000
@@ -633,6 +633,7 @@ object Schema {
       //println(vesselsWithDimensions)
       val requirementsToSchedule = toSchemaRequirements(requirements, d, vesselsWithDimensions)
       //println(requirementsToSchedule)
+
 
       val context = if (useGlobalDistanceCache) {
         Schedule.Context(portMap = Shared.portMap, distanceCache = globalDistanceCache)
@@ -659,7 +660,7 @@ object Schema {
             //schedules it by itself assuming no filtering
             //val vesselCandidates = requirementsToSchedule
             println(vesselCandidates)
-            Schedule.schedule(d, vessel, vesselCandidates, context)
+            Schedule.schedule(d, vessel, vesselCandidates, constants, context)
           }
         }
         val fin = Future.sequence(futures)

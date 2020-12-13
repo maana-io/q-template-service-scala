@@ -148,11 +148,11 @@ object QueryInputs {
 
   @GraphQLDescription(""" Constants used for optimization""")
   case class Constants(
-      id: String,
       defaultFuelPrice: Double, 
-      defaultDiesalPrice: Double,
+      defaultDieselPrice: Double,
       refuelThreshold: Double,
-      criticalRefuelThreshold: Double)
+      criticalRefuelThreshold: Double,
+      operationalOverhead: Double)
 
   // example configuration for inputs to resolvers
   type Name = String
@@ -173,7 +173,7 @@ object QueryInputs {
   implicit val VesselDetailsType = deriveInputObjectType[VesselDetails]()
   
   implicit val VesselInputType = deriveInputObjectType[VesselInput]()
-  implicit val ContstantsType = deriveInputObjectType[Constants]()
+  implicit val ConstantsInputType = deriveInputObjectType[Constants]()
   implicit val Q88VesselInputType=deriveInputObjectType[Q88VesselInput]()
 
   implicit val VesselActionInputType = deriveInputObjectType[VesselActionInput]()
@@ -183,6 +183,11 @@ object QueryInputs {
   implicit val VesselWithQ88AndStatusAndRequirementsInputInputType = deriveInputObjectType[VesselWithQ88AndStatusAndRequirementsInput]()
 
   implicit val VesselWithRequirementsInputType = deriveInputObjectType[VesselWithRequirementsInput]()
+
+
+
+
+
 
   def DateRangeStr(i: DateRangeInput) : String = {
     s"""{ startDate: "${i.startDate}", endDate: "${i.endDate}" }"""

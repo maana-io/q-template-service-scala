@@ -7,6 +7,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import io.maana.Schema.{DateRange, UnavailableTime}
+import io.maana.QueryInputs.{Constants}
 import sangria.execution.UserFacingError
 
 import scala.annotation.tailrec
@@ -617,7 +618,7 @@ object Schedule {
   }
 
 
-  def schedule(now: Long, vessel: Schema.VesselWithDimensions, requirementsToSchedule: Seq[Schema.Requirement], context: Context) = {
+  def schedule(now: Long, vessel: Schema.VesselWithDimensions, requirementsToSchedule: Seq[Schema.Requirement], constants: Constants, context: Context) = {
     // TODO take into account current ongoing action/current ongoing Requirement
     val startingPort = vessel.startLocation
     val startingFuel = vessel.startFuel
