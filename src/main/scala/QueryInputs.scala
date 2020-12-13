@@ -128,6 +128,13 @@ object QueryInputs {
       vessel: VesselInput,
   )
 
+  case class VesselWithQ88AndStatusAndRequirementsInput(
+    id: VesselId,
+    q88Vessel: Q88VesselInput,
+    vessel: VesselInput,
+    requirements: Seq[String],
+  ) 
+
   @GraphQLDescription("""Used for both Longs and Shorts. Product can be specified as either an aramco product or a BP product""")
   case class VesselActionInput(product: String, quantity: Double, valid: DateRangeInput, location: PortId, terminal: Option[TerminalId])
   @GraphQLDescription("""Requirement to be scheduled, requirements locked to vessels specify the ID of the vessel they are locked to. This list should contain only requirements that should be scheduled, i.e. omit requirements completed or in process.""")
@@ -173,13 +180,9 @@ object QueryInputs {
   implicit val RequirementInputType = deriveInputObjectType[RequirementInput]()
 
   implicit val VesselWithQ88AndStatusInputType = deriveInputObjectType[VesselWithQ88AndStatusInput]()
+  implicit val VesselWithQ88AndStatusAndRequirementsInputInputType = deriveInputObjectType[VesselWithQ88AndStatusAndRequirementsInput]()
 
   implicit val VesselWithRequirementsInputType = deriveInputObjectType[VesselWithRequirementsInput]()
-
-
-
-
-
 
   def DateRangeStr(i: DateRangeInput) : String = {
     s"""{ startDate: "${i.startDate}", endDate: "${i.endDate}" }"""

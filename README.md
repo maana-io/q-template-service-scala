@@ -130,3 +130,105 @@ query {
     ]
   )
 }
+
+query detailedSchedules {
+  detailedSchedules(
+    date:"2019-12-16T00:00:00.000Z",
+    vessels: [
+    {
+      id: "9688348"
+          vessel: {
+              id: "9688348"
+              name: "NCC Wafa"
+            	isParked:false
+              clean: "c"
+              details: {
+                  id: "12345"
+                  charteringCost: 12000
+                  contractExpiration: "2021-11-16"
+                  sizeCategory: "LR"
+                  cleaningTimeMultiplier: 1
+              }
+              portRestrictions: []
+            	bunkerRequirements:  {
+                id: "9688348"
+                laden_speed_11: 10
+                laden_speed_12: 10
+                laden_speed_12_5: 10
+                laden_speed_13: 10
+                laden_speed_13_5: 10
+                laden_speed_14: 10
+                laden_speed_14_5: 10
+                laden_speed_15: 10
+                ballast_speed_11: 10
+                ballast_speed_12: 10
+                ballast_speed_12_5: 10
+                ballast_speed_13: 10
+                ballast_speed_13_5: 10
+                ballast_speed_14: 10
+                ballast_speed_14_5: 10
+                ballast_speed_15: 10
+                no_eca_cold_cleaning: 10.0
+                no_eca_hot_cleaning: 10.0
+           	 }
+            	unavailableTimes:[]
+             currentStatus: {
+                id: "9688348"
+                availableFrom: "2019-12-16T00:00:00.000Z"
+                lastKnownPort: "SAYNB" 
+                lastProduct: ""
+                startingFuel: 616.0
+        		}
+
+      }
+      q88Vessel: {
+        id: "9688348"
+        name: "NCC Wafa"
+        totalProductCapacity: 52434.21
+        scnt:27515.13,
+        imoClass:"2,3"
+        cleaningTimeMultiplier:0.1
+        cargoPumpingRateM3PerS:2700        
+        dimensions:{
+          id:"9688348"
+          beam: 32.24
+          overallLength: 183.12
+          aftParallelBodyDistance: 55.899
+          forwardParallelBodyDistance: 34.32
+        }
+        speedCapabilities: {
+          id: "9688348"
+          ladenEconomicSpeed: 12.5
+          ladenMaxSpeed: 14
+          ballastEconomicSpeed: 13
+          ballastMaxSpeed: 14
+
+        }
+        carryingCapacity:{
+          id: "9688348"
+          fuelCapacity: 1173.5
+          diesalCapacity: 490.8
+          gasOilCapacity: 36
+        }
+      }
+    requirements: ["CIT20191250"]
+    }]
+    requirements: [
+      {id: "CIT20191250", cleanStatus: "c", 
+        longs: [{ product: "dyed gas oil", quantity: 47696.1885, location: "SAYNB", valid: {startDate: "2019-12-18T00:00:00.000Z", endDate: "2019-12-19T23:59:59.000Z" } }] 
+        shorts: [{ product: "dyed gas oil", quantity: 47696.1885, location: "SAJED", valid: {startDate: "2019-12-22T00:00:00.000Z", endDate: "2019-12-23T23:59:59.000Z" } }],   
+      }
+    ]
+		
+  ){
+    vessel
+    requirements{
+      cost
+      actions{
+        type
+      }
+    }
+    
+  }
+}
+

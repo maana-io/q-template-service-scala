@@ -14,7 +14,7 @@ import io.circe.syntax._
 
 //need to figure out what this is for.  looks like to do with cleaning time but we dont use that right now
 import io.maana.Queries.productMappings
-
+import io.maana.ScheduleResults.DetailedSchedule
 import sangria.marshalling.circe._
 
 // These really are required -- Intellij just can't establish that
@@ -384,10 +384,109 @@ object Schema {
     }
 
   }
+  //maps the input (VesselWithq88AndStatus to the vessel used in this service)
+  def toVesselsWithDimensionsAndRequirements(vessels: Seq[VesselWithQ88AndStatusAndRequirementsInput]) : Seq[VesselWithDimensions] = {
+    vessels.map { in =>
+      VesselWithDimensions(
+        id = in.id,
+        startDate = in.vessel.currentStatus.availableFrom.toDate.getTime / 1000,
+        startFuel = in.vessel.currentStatus.startingFuel,
+        startLocation = in.vessel.currentStatus.lastKnownPort,
+        lastProduct = {
+          val prod = productMappings.getOrElse(in.vessel.currentStatus.lastProduct.toLowerCase, { println(s"WARNING: no entry in mapping for product ${in.vessel.currentStatus.lastProduct}, no cleaning time calculated"); "" })
+          Product(prod, in.vessel.currentStatus.lastProduct)
+        },
+        portRestrictions = toPortRestrictions(in.vessel.portRestrictions.getOrElse(Seq.empty)),
+        //what is terminalRestrictions used for?
+        terminalRestrictions = toTerminalRestrictions(in.vessel.portRestrictions.getOrElse(Seq.empty)),
+        unvailableTimes = combineRanges(
+          in.vessel.unavailableTimes.getOrElse(Seq.empty)
+            .map(a =>
+              UnavailableTime(
+                dateRange = toDateRange(a.dateRange),
+                startPort = a.startPort.getOrElse(""),
+                endPort = a.endPort.getOrElse(a.startPort.getOrElse(""))
+              )
+            ).sortBy(_.dateRange.startDate)
+        ),
+        dimensions = {
+          VesselDimensions(
+              id = in.id,
+              name = in.vessel.name,
+              sizeCategory = in.vessel.details.sizeCategory,
+              fuelCapacity = in.q88Vessel.carryingCapacity.fuelCapacity,
+              ballastEconomicSpeed = in.q88Vessel.speedCapabilities.ballastEconomicSpeed,
+              ballastMaxSpeed =in.q88Vessel.speedCapabilities.ballastMaxSpeed,
+              ladenEconomicSpeed =in.q88Vessel.speedCapabilities.ladenEconomicSpeed,
+              ladenMaxSpeed = in.q88Vessel.speedCapabilities.ladenMaxSpeed,
+              totalProductCapacityM3 = in.q88Vessel.totalProductCapacity,
+              beam =in.q88Vessel.dimensions.beam,
+              overallLength = in.q88Vessel.dimensions.overallLength,
+              aftParallelBodyDistance = in.q88Vessel.dimensions.aftParallelBodyDistance,
+              forwardParallelBodyDistance = in.q88Vessel.dimensions.forwardParallelBodyDistance,
+              ladenBunkerRequirmentsMtPerDay = Map(
+                  (10 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_11,         // No 10
+                  (10.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_11,       // No 10.5
+                  (11 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_11,
+                  (11.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_11,       // No 11.5
+                  (12 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_12,
+                  (12.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_12_5,
+                  (13 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_13,
+                  (13.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_13_5,
+                  (14 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_14,
+                  (14.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_14_5,
+                  (15 * 2).toInt    ->   in.vessel.bunkerRequirements.ballast_speed_15,
+                  (15.5 * 2).toInt  ->   in.vessel.bunkerRequirements.ballast_speed_15,       // No 15.5
+                ),
+
+              ballastBunkerRequirmentsMtPerDay = Map(
+                  (10 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_11,           // No 10
+                  (10.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_11,         // No 10.5
+                  (11 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_11,
+                  (11.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_11,         // No 11.5
+                  (12 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_12,
+                  (12.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_12_5,
+                  (13 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_13,
+                  (13.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_13_5,
+                  (14 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_14,
+                  (14.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_14_5,
+                  (15 * 2).toInt    ->  in.vessel.bunkerRequirements.laden_speed_15,
+                  (15.5 * 2).toInt  ->  in.vessel.bunkerRequirements.laden_speed_15,         // No 15.5
+              ),
+              cleaningTimeMultiplier = in.vessel.details.cleaningTimeMultiplier,
+              cleaningRates = Vector(
+                  0,
+                  in.vessel.bunkerRequirements.no_eca_cold_cleaning.foldLeft(0.0){ case (a,b) => a+b },
+                  in.vessel.bunkerRequirements.no_eca_hot_cleaning.foldLeft(0.0){ case (a,b) => a+b}
+              ),
+              cleanStatus = in.vessel.clean,
+              //not used or at least in the vessel model its null
+              imoClass = in.q88Vessel.imoClass,
+              scnt = in.q88Vessel.scnt,
+              cargoPumpingRateM3PerS = in.q88Vessel.cargoPumpingRateM3PerS,
+
+          )
+        },
+        contract = {
+          VesselContract(
+            vesselId = in.id,
+            dailyCharterCost = in.vessel.details.charteringCost,
+            expiration = Scalars.parseDate(in.vessel.details.contractExpiration).toOption
+              .map {
+                d => d.toDate.getTime/1000
+              }.getOrElse{ println(s"WARNING - Could not parse contract Date ${in.vessel.details.contractExpiration}"); Long.MaxValue}
+          )
+        } 
+        //contract = Shared.vesselContractMap.getOrElse(in.id, {println(s"WARNING: no contract for vessel ${in.id}"); Schema.VesselContract("", 0, 0)})
+      )
+    }
+
+  }
 
   def capacityCheck(vessel: VesselDimensions, requirement: Requirement): Either[String, Unit] = {
     val requirementQty = Math.max(requirement.shorts.map{_.productQuantityM3}.sum, requirement.longs.map{_.productQuantityM3}.sum)
     if ((vessel.totalProductCapacityM3 * vesselVolumeCapacityTolerance) >= requirementQty) {
+      println("capacity check valid")
       Right( () )
     } else {
       Left(s"Vessel does not have capacity to complete requirement ${vessel.totalProductCapacityM3} vs $requirementQty")
@@ -396,6 +495,7 @@ object Schema {
 
   // Only vessels with an IMOClass can carry MTBE
   def mtbeCheck(vessel: VesselDimensions, requirement: Requirement) : Either[String, Unit] = {
+    println("checking MTBE")
     val requirementContainsMTBE = !requirement.longs.forall {l => l.product.id.toLowerCase() != "mtbe"}
     if (requirementContainsMTBE && vessel.imoClass.isEmpty) {
       Left("Vessel cannot carry MTBE product")
@@ -405,6 +505,7 @@ object Schema {
   }
 
   def contractNotExpired(contract: VesselContract, requirement: Requirement) : Either[String, Unit] = {
+    println("checking contract")
     if (requirement.shorts.last.valid.startDate > contract.expiration) {
       Left(s"Requirement completes after contract expiration on ${dateStr(contract.expiration)}")
     } else {
@@ -424,7 +525,7 @@ object Schema {
 
   def portCheck(vessel: VesselDimensions, requirement: Requirement, portIncompatabilities: PortIncompatabilityMap, terminalIncompatibilities: TerminalIncompatabilityMap, portMap: PortMap) : Either[String, Unit] = {
     // requirement can not require stopping at a port that is incompatible with the vessel within this date range
-
+   
     def checkActions(actions: Seq[PortAction]) : Boolean = actions.forall {action =>
       val port = portMap(action.portId)
       dockingFeasable(vessel, port) && {
@@ -474,11 +575,13 @@ object Schema {
     val res = if (requirement.locked.isDefined) {
       if (requirement.locked.get == vessel.id) {
         // locked Requirements MUST be valid to solve
+        println("requirement is locked")
         valid()
       } else {
         Left("Requirement locked to another vessel")
       }
     } else {
+      print("requirement not locked so checking validity")
       valid()
     }
     res
@@ -527,7 +630,9 @@ object Schema {
 
       val d = date.toDate.getTime / 1000
       val vesselsWithDimensions = toVesselsWithDimensions(vessels)
+      //println(vesselsWithDimensions)
       val requirementsToSchedule = toSchemaRequirements(requirements, d, vesselsWithDimensions)
+      //println(requirementsToSchedule)
 
       val context = if (useGlobalDistanceCache) {
         Schedule.Context(portMap = Shared.portMap, distanceCache = globalDistanceCache)
@@ -537,12 +642,12 @@ object Schema {
 
 
       // Easier to debug none parallel version
-//      val res0 = Profile.prof("Simulation.schedule") {
-//        vesselsWithDimensions.map { vessel =>
-//          val vesselCandidates = filteredRequirements(vessel.dimensions, vessel.contract, requirementsToSchedule, vessel.portRestrictions, vessel.terminalRestrictions, Shared.portMap)
-//          Schedule.schedule(d, vessel, vesselCandidates, context)
-//        }
-//      }
+      //      val res0 = Profile.prof("Simulation.schedule") {
+      //        vesselsWithDimensions.map { vessel =>
+      //          val vesselCandidates = filteredRequirements(vessel.dimensions, vessel.contract, requirementsToSchedule, vessel.portRestrictions, vessel.terminalRestrictions, Shared.portMap)
+      //          Schedule.schedule(d, vessel, vesselCandidates, context)
+      //        }
+      //      }
 
       // Faster Parallel version
       val res0 = Profile.prof("Simulation.schedule") {
@@ -550,6 +655,10 @@ object Schema {
           Future {
             //these are candiate requirements to schedule on the vessel after a bunch of checks
             val vesselCandidates = filteredRequirements(vessel.dimensions, vessel.contract, requirementsToSchedule, vessel.portRestrictions, vessel.terminalRestrictions, Shared.portMap)
+            
+            //schedules it by itself assuming no filtering
+            //val vesselCandidates = requirementsToSchedule
+            println(vesselCandidates)
             Schedule.schedule(d, vessel, vesselCandidates, context)
           }
         }
@@ -562,13 +671,42 @@ object Schema {
         res0.asJson.noSpaces
       }
     }
+    //TODO: add detailed schedule and validate order resolvers in here
+    @GraphQLDescription(
+      """Expand a given set of ordered requirements to include actions performed by those requirements and the resulting state
+        |""".stripMargin)
+    @GraphQLField
+    def detailedSchedules(date: DateTime, vessels: Seq[VesselWithQ88AndStatusAndRequirementsInput], requirements: Seq[RequirementInput]): Seq[DetailedSchedule] = Profile.prof("Query: detailedSchedules") {
+      val d = date.toDate.getTime / 1000
+
+      //this is a different input so we will have to change the input to this function also.
+      val vesselsWithDimensions = toVesselsWithDimensionsAndRequirements(vessels)
+      val requirementMap = toSchemaRequirements(requirements, d, vesselsWithDimensions).map(r => r.id -> r).toMap
+      val vesselSchedules = vessels.map(in => {
+        in.requirements.map(r => requirementMap.getOrElse(r, throw SchemaError(s"Requirement $r for vessel ${in.id} not found")))
+      })
+      val vesselsWithDimensionsAndSchedules = vesselsWithDimensions.zip(vesselSchedules)
+
+      val context = if (useGlobalDistanceCache) {
+        Schedule.Context(portMap = Shared.portMap, distanceCache = globalDistanceCache)
+      } else {
+        Schedule.Context(portMap = Shared.portMap)
+      }
+
+      val res = vesselsWithDimensionsAndSchedules.map { case (v, rs) =>
+        
+        Schedule.expandSchedule(d, v, rs, context)
+      }
+      res
+
+    }
 
      
   
   }
 
 
-  //TODO: add detailed schedule and validate order resolvers in here
+  
 
 
 
