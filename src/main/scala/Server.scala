@@ -116,7 +116,8 @@ object Server extends App with CorsSupport {
     }
 
   // force initialization of one offs
-  //Shared.init
+  //this requires a connection to the ports service
+  Shared.init
 
   val port = sys.props.get("http.port").fold(8080)(_.toInt)
   println(s"Server listening on 0.0.0.0:${port}")
