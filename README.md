@@ -127,7 +127,15 @@ query {
         
       }
      
-    ]
+    ],
+    constants:{
+      defaultFuelPrice: 400,
+      defaultDieselPrice:650,
+      refuelThreshold:400,
+      criticalRefuelThreshold:300
+      operationalOverhead:15
+    }
+    
   )
 }
 
