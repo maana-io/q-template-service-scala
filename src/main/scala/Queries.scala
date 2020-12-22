@@ -45,10 +45,6 @@ object Queries {
   //println(s"logicEndpoint at $logicEndpoint")
   //println(s"requirementsEndpoint at $requirementsEndpoint")
 
-  
-  //private val client        = MaanaClient(this.getClass)
-
-
 
   //this should be able to connect to the shipping model
   //val portsEndpoint = "https://aatcfanar-test03.knowledge.maana.io:8443/service/e1a8f4bf-9f7a-46a9-852c-66169c96cc76/graphql"
@@ -204,6 +200,12 @@ object Queries {
 
   def distanceQ(from: String, to: String) = s"""query working2 {getPortToPortDistance(port1: \\"$from\\", port2: \\"$to\\"){ value suezRoute} }"""
 
+  case class DistanceInput(originPort: String, destinationPort: String, antiPiracy: Boolean, eca: Boolean)
+  case class DistanceResult(getPortToPortDistance: PortDistance)
+
+  case class Pagination(offset: Int, size: Int)
+  
+
 
 
   def requestGQL(endpoint: String, gql: String) : Future[JsonObject] = {
@@ -297,7 +299,7 @@ object Queries {
       case Left(value) =>
        throw(new Exception(s"Couldn't get data "))
       case Right(value) =>
-        println(s" port data:  ${value.data}")
+        println(value)
         value.data.allPortsFromCache.map (p => Schema.Port(
           id = p.id,
           feeDollars = p.averageFee,
@@ -360,6 +362,10 @@ object Queries {
     if (from == to) {
       Future.successful(PortDistance(value = 0.0, suezRoute = false))
     } else {
+     
+      //val q = client.query[DistanceResult](distanceQuery, DistanceInput(from, to, antiPiracy, eca))
+      //val data: Future[GraphQLResponse[DistanceResult]] = q.result
+      //use the same ports endpoint to requests portToPort Distance
       val req = requestGQL(portsEndpoint, distanceQ(from, to)).map { res =>
         getData(res, "getPortToPortDistance").as[PortDistance].right.get
       }
@@ -370,6 +376,7 @@ object Queries {
   def distances(reqs: Seq[DistanceRequest]): Future[Seq[PortDistance]] = {
     val queries = reqs.map { r =>
       distance(r.from, r.to)
+      
     }
     Future.sequence(queries)
   }
