@@ -18,6 +18,11 @@ import akka.stream.scaladsl.{Flow, Sink, Source}
 import sangria.validation.ValueCoercionViolation
 import com.typesafe.config.ConfigFactory
 
+//Graphql client imports
+import com.github.jarlakxen.drunk._
+import io.circe._, io.circe.generic.semiauto._
+import sangria.macros._
+
 
 
 // TODO report query errors out to client
@@ -36,9 +41,13 @@ object Queries {
   val logicEndpoint = conf.getString("app.fanarLogicEndpoint")
   val requirementsEndpoint = conf.getString("app.requirementsEndpoint")
 
-  println(s"portsEndpoint at $portsEndpoint")
-  println(s"logicEndpoint at $logicEndpoint")
-  println(s"requirementsEndpoint at $requirementsEndpoint")
+  //println(s"portsEndpoint at $portsEndpoint")
+  //println(s"logicEndpoint at $logicEndpoint")
+  //println(s"requirementsEndpoint at $requirementsEndpoint")
+
+  
+  //private val client        = MaanaClient(this.getClass)
+
 
 
   //this should be able to connect to the shipping model
@@ -125,21 +134,73 @@ object Queries {
 
   // From the ports service the units aren't populated - everything is in Meters
   case class Location(latitude: Double, longitude: Double)
-  case class Berth(id: String, maxBeam: Option[DVNoUnit], maxOverallLength: Option[DVNoUnit], minOverallLength: Option[DVNoUnit], minPmbAft: Option[DVNoUnit], minPmbForward: Option[DVNoUnit])
-  case class Port(id: String, location: Location, hasAtleastOneBunkeringBerth: Boolean, loadingPumpRate: DoubleValue, averageFee: DVNoUnit, berths: Vector[Berth])
+
+  case class Berth(
+    id: String, 
+    maxBeam: Double, 
+    maxOverallLength: Double, 
+    minOverallLength: Double, 
+    minPmbAft: Double, 
+    minPmbForward: Double)
+  
+  case class Terminal(
+    id: String,
+    berths: Vector[Berth]
+  )
+  case class Port(
+    id: String, 
+    location: Location, 
+    canRefuel: Boolean, 
+    loadingPumpRate: Double, 
+    averageFee: Double, 
+    terminals: Seq[Terminal]
+  )
+
   case class PortDistance(value: Double, suezRoute: Boolean)
+
+  //case class SimplePort(id: String)
+  case class AllPortsFromCacheResult(allPortsFromCache: Seq[Port])
+
+  // this is the Graphql Client response to be flattened  
+  type GraphQLResponse[Res] = Either[GraphQLResponseError, GraphQLResponseData[Res]]
+
 
   case class Contract(vessel: IdRef, dailyCharteringCosts: DVNoUnit, charterExpiration: String)
 
-  val bunkerRequirements = "{ no_eca_cold_cleaning { rate { value } } no_eca_hot_cleaning { rate { value } } laden_speed_11 { rate { value } } laden_speed_12 { rate { value } } laden_speed_12_5 { rate { value } } laden_speed_13 { rate { value } } laden_speed_13_5 { rate { value } } laden_speed_14 { rate { value } } laden_speed_14_5 { rate { value } } laden_speed_15 { rate { value } } ballast_speed_11 { rate { value } } ballast_speed_12 { rate { value } } ballast_speed_12_5 { rate { value } } ballast_speed_13 { rate { value } } ballast_speed_13_5 { rate { value } } ballast_speed_14 { rate { value } } ballast_speed_14_5 { rate { value } } ballast_speed_15 { rate { value } } }"
+  //val bunkerRequirements = "{ no_eca_cold_cleaning { rate { value } } no_eca_hot_cleaning { rate { value } } laden_speed_11 { rate { value } } laden_speed_12 { rate { value } } laden_speed_12_5 { rate { value } } laden_speed_13 { rate { value } } laden_speed_13_5 { rate { value } } laden_speed_14 { rate { value } } laden_speed_14_5 { rate { value } } laden_speed_15 { rate { value } } ballast_speed_11 { rate { value } } ballast_speed_12 { rate { value } } ballast_speed_12_5 { rate { value } } ballast_speed_13 { rate { value } } ballast_speed_13_5 { rate { value } } ballast_speed_14 { rate { value } } ballast_speed_14_5 { rate { value } } ballast_speed_15 { rate { value } } }"
   val shortActionFields = "{ dateRange { startDate endDate } dischargePort { id } terminal { id } product { id cleanStatus} productQuantity { value unit { id } } }"
   val longActionFields = "{ dateRange { startDate endDate } loadingPort { id } terminal { id } product { id cleanStatus} productQuantity { value unit { id } } }"
   val actionFields = "{dateRange { startDate endDate } nextVesselStatus { date lastKnownPort { id } fuelRemaining { value } } }"
 
   val contracts = s"query { getAllVesselContracts { vessel { id } dailyCharteringCosts { value } charterExpiration } }"
 
-  val portsQ = s"""query {allPorts { id hasAtleastOneBunkeringBerth location { latitude longitude } averageFee { value }  loadingPumpRate { value unit { id } } berths { id maxBeam { value } maxOverallLength { value } minOverallLength { value } minPmbAft { value } minPmbForward { value }}}}""".stripMargin
+  //will need to modify this 
+  //val portsQOld = s"""query {allPorts { id hasAtleastOneBunkeringBerth location { latitude longitude } averageFee { value }  loadingPumpRate { value unit { id } } berths { id maxBeam { value } maxOverallLength { value } minOverallLength { value } minPmbAft { value } minPmbForward { value }}}}""".stripMargin
 
+  //new ports query
+  val portsQuery = 
+    graphql"""
+      query {allPortsFromCache { 
+          id 
+          canRefuel 
+          location { latitude longitude } 
+          averageFee 
+          loadingPumpRate 
+          terminals{
+            id
+            berths{
+              id
+              maxBeam
+              maxOverallLength
+              minOverallLength
+              minPmbAft
+              minPmbForward      
+            }
+          }
+        }
+    }
+    """
+  
 
   def distanceQ(from: String, to: String) = s"""query working2 {getPortToPortDistance(port1: \\"$from\\", port2: \\"$to\\"){ value suezRoute} }"""
 
@@ -181,17 +242,7 @@ object Queries {
     obj("data").get.asObject.get(name).get
   }
 
-
-  
-
   val MAX_SUPPORTED_SPEED = 15
-
- 
-
-
-
-
-
 
   def toM(value: Double, unit: String) : Double = unit.toLowerCase() match {
     case "m" => value
@@ -223,12 +274,10 @@ object Queries {
     d.getTime()/1000
   }
 
-  
-
 
   val PORT_DIMENSION_TOLERANCE = 0.1
 
-  def ports : Future[Seq[Schema.Port]] = {
+  def ports(client: GraphQLClient) : Future[Seq[Schema.Port]] = {
     def withTol(v: Double, tol: Double) : Double = {
       if (v == 0) {         // 0 is s sentinel value and should not be adjusted
         0
@@ -239,7 +288,41 @@ object Queries {
 
 
     println("querying Q for ports")
-    val req = requestGQL(logicEndpoint, portsQ).map { res =>
+
+
+    val q = client.query[AllPortsFromCacheResult](portsQuery)
+    val data: Future[GraphQLResponse[AllPortsFromCacheResult]] = q.result
+    data.map {
+      case Left(value) =>
+       throw(new Exception(s"Couldn't get data "))
+      case Right(value) =>
+        println(s" port data:  ${value.data}")
+        value.data.allPortsFromCache.map (p => Schema.Port(
+          id = p.id,
+          feeDollars = p.averageFee,
+          loadingPumpRateM3PerS = p.loadingPumpRate / 3600.0, //toM3PerSec
+          canRefuel = p.canRefuel,
+          latitude = p.location.latitude,
+          longitude = p.location.longitude,
+          //berths needs mapping
+          //terminals 
+          berths = p.terminals.map(t => t.berths).flatten.map{ b => Schema.Berth(
+            id = b.id,
+            maxBeam = withTol(b.maxBeam, PORT_DIMENSION_TOLERANCE),  
+            maxOverallLength = withTol(b.maxOverallLength, PORT_DIMENSION_TOLERANCE),     // Unspecified always passes
+            minOverallLength = withTol(b.minOverallLength, -PORT_DIMENSION_TOLERANCE),    // Unspecified always passes
+            minPmbAft = b.minPmbAft,                                                      // Unspecified always passes
+            minPmbForward = b.minPmbForward   
+
+          )}.toVector,
+
+          neighbors = Vector.empty
+          
+        ))
+    }
+
+
+    /*val req = requestGQL(logicEndpoint, portsQ).map { res =>
       getData(res, "allPorts").as[Vector[Port]].right.get.map { p =>
   
         Schema.Port(
@@ -264,9 +347,9 @@ object Queries {
           neighbors = Vector.empty
         )
       }
-    }
+    }*/
 
-    req
+    
   }
 
 

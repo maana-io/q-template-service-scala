@@ -25,6 +25,8 @@ import sangria.slowlog.SlowLog
 
 import scala.io.Source
 
+import io.maana.common.MaanaClient
+
 object Server extends App with CorsSupport {
   implicit val system = ActorSystem("sangria-server")
   implicit val materializer = ActorMaterializer()
@@ -115,9 +117,12 @@ object Server extends App with CorsSupport {
       redirect("/graphql", PermanentRedirect)
     }
 
+  //build graphql client here?
+  val client = MaanaClient().maanaClient
+ 
   // force initialization of one offs
   //this requires a connection to the ports service
-  Shared.init
+  Shared.init(client)
 
   val port = sys.props.get("http.port").fold(8080)(_.toInt)
   println(s"Server listening on 0.0.0.0:${port}")

@@ -142,6 +142,8 @@ object Schema {
   case class Port(id: PortId, feeDollars: Double, loadingPumpRateM3PerS: Double, berths: Vector[Berth], canRefuel: Boolean, latitude: Double, longitude: Double, neighbors: Vector[Port])
   type PortMap = Map[PortId, Port]
 
+  case class SimplePort(id: String)
+
   case class UnavailableTime(dateRange: DateRange, startPort: PortId, endPort:PortId)
 
   case class VesselWithDimensions(id: VesselId, startDate: Long, startFuel: Double, lastProduct: Schema.Product, startLocation: PortId, portRestrictions: PortIncompatabilityMap, terminalRestrictions: TerminalIncompatabilityMap, unvailableTimes: Seq[UnavailableTime], dimensions: VesselDimensions, contract: VesselContract)

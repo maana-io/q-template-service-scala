@@ -1,5 +1,5 @@
 
-version := sys.env.getOrElse("BUILD_VERSION", "latest")
+version := sys.env.getOrElse("BUILD_VERSION", "v1.0.0")
 
 name := sys.env.getOrElse("NAME", "maana_fast_scheduler")
 
@@ -10,7 +10,14 @@ description := "Maana's Shipping Fast Scheduler Service"
 scalaVersion := "2.12.6"
 scalacOptions ++= Seq("-deprecation", "-feature")
 
+resolvers += Resolver.bintrayRepo("jarlakxen", "maven")
+
 libraryDependencies ++= Seq(
+
+  //Todo move these to Dependencies.scala
+  "com.github.jarlakxen" %% "drunk" % "2.4.0",
+
+
   "org.sangria-graphql" %% "sangria" % "1.4.2",
   "org.sangria-graphql" %% "sangria-slowlog" % "0.1.8",
   "org.sangria-graphql" %% "sangria-circe" % "1.2.1",
@@ -27,6 +34,7 @@ libraryDependencies ++= Seq(
 
   "org.scalatest" %% "scalatest" % "3.0.5" % Test
 )
+
 
 Revolver.settings
 enablePlugins(JavaAppPackaging)

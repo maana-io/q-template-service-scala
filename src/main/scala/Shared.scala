@@ -7,6 +7,7 @@ import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
+import com.github.jarlakxen.drunk.GraphQLClient
 
 
 //only deals with ports and distances 
@@ -42,11 +43,11 @@ object Shared {
       throw SchemaError("Failed: Inetrnal Error - Could not read data from servers")
     } else {
       try {
-        Await.result(in, 100.seconds)
+        Await.result(in, 1000.seconds)
       } catch { case e: Throwable => synchronized{
         try  {
           // Could have been done on another thread
-          Await.result(in, 100.seconds)
+          Await.result(in, 1000.seconds)
         } catch { case e: Throwable =>
           println(s"WARNING - query failed - $e - retrying in 1s")
           Thread.sleep(1000)
@@ -59,22 +60,25 @@ object Shared {
   }
 
   var portMapF : java.util.concurrent.atomic.AtomicReference[Future[PortMap]] = new java.util.concurrent.atomic.AtomicReference(null)
-  def portMap : PortMap =  AwaitWithRetry(portMapF.get, getPorts)
+  def portMap : PortMap =  AwaitWithRetry(portMapF.get, getPorts(_))
 
 
 //  def getContracts: Unit =
 
 
 
-  def getPorts: Unit = {
+  def getPorts(client: GraphQLClient): Unit = {
     // Ports
     println("getting ports")
-    val portsS: Future[Seq[Port]] = Queries.ports.map { ps =>
+    val portsS: Future[Seq[Port]] = Queries.ports(client).map { ps =>
+
+      
       
       // Cache the 10 closest neighboring ports for refueling calculation - if port can't provide refueling
       val refuelingPorts = ps.filter(_.canRefuel).toVector
       // Note only care for ports that can't provide refueling
       val res = ps.filterNot(_.canRefuel).map { p =>
+        println(p.id)
         if (!p.canRefuel) {
           val l0 = (p.latitude, p.longitude)
           val neighbors = refuelingPorts
@@ -92,6 +96,8 @@ object Shared {
       out
     }
 
+    
+
   
 
     val f = portsS.map { ports =>
@@ -107,8 +113,9 @@ object Shared {
 
 
 
-  def reloadCaches: Unit = synchronized {
-    getPorts
+  def reloadCaches(client: GraphQLClient): Unit = synchronized {
+    
+    getPorts(client)
   }
 
 
@@ -131,15 +138,16 @@ object Shared {
     }
   }
 
-  def init: Unit = Profile.prof("Shared: init"){
+  def init(client: GraphQLClient): Unit = Profile.prof("Shared: init"){
     println("Reading static data")
 
-    reloadCaches
+    reloadCaches(client)
+    //println(client)
 
     try {
 //    Must get results to continue
 //      Await.result(portMapF.zip(vesselDimensionMapF), 100.seconds)
-      println("Ports and Vessel Dimensions requested")
+      println("Ports  requested")
     } catch {case e : Throwable=>
       println(s"ERROR  - $e \nFailed to fetch preloaded data exiting in 10s docker will restart.")
       Thread.sleep(10000)
