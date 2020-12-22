@@ -288,6 +288,7 @@ object Queries {
 
 
     println("querying Q for ports")
+    //println(portsQuery)
 
 
     val q = client.query[AllPortsFromCacheResult](portsQuery)

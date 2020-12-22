@@ -54,6 +54,7 @@ class MaanaClient(implicit val system: ActorSystem, mat: ActorMaterializer) {
 
     // Auth code is not removed *for now* as we may need to have authentication against Maana later
     // but for now, with empty defaults and updated core.yml it will be unauthenticated access to maana-portal
+    println(Configuration.MAANA_CLIENT_ENDPOINT)
     val client = clientForUri(Uri(Configuration.MAANA_CLIENT_ENDPOINT), headers)
     (client, auth)
   }

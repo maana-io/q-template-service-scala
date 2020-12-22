@@ -43,11 +43,11 @@ object Shared {
       throw SchemaError("Failed: Inetrnal Error - Could not read data from servers")
     } else {
       try {
-        Await.result(in, 1000.seconds)
+        Await.result(in, 100.seconds)
       } catch { case e: Throwable => synchronized{
         try  {
           // Could have been done on another thread
-          Await.result(in, 1000.seconds)
+          Await.result(in, 100.seconds)
         } catch { case e: Throwable =>
           println(s"WARNING - query failed - $e - retrying in 1s")
           Thread.sleep(1000)
@@ -71,9 +71,6 @@ object Shared {
     // Ports
     println("getting ports")
     val portsS: Future[Seq[Port]] = Queries.ports(client).map { ps =>
-
-      
-      
       // Cache the 10 closest neighboring ports for refueling calculation - if port can't provide refueling
       val refuelingPorts = ps.filter(_.canRefuel).toVector
       // Note only care for ports that can't provide refueling
