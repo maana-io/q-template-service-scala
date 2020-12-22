@@ -13,6 +13,8 @@ import sangria.execution.UserFacingError
 import scala.annotation.tailrec
 import scala.io.Source
 
+import Server.Client.client
+
 
 // TODO vessel unavailable time.
 // TODO past due locked requirements
@@ -574,7 +576,7 @@ object Schedule {
         // Could have been populate by parallel call after failure so fetch again synchronized this time to prevent duplicate external requests
         synchronized(context.distanceCache.getOrElse((from, to), {
           println(s"Fetching distance from service $from -> $to")
-          val d = Queries.distance(from, to)
+          val d = Queries.distance(client, from, to)
           // Note service does not return symmetric distances A=>B != B=>A
           context.distanceCache.put((from, to), d)
           d

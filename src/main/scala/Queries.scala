@@ -204,6 +204,16 @@ object Queries {
   case class DistanceResult(getPortToPortDistance: PortDistance)
 
   case class Pagination(offset: Int, size: Int)
+
+  val distanceQuery = 
+    graphql"""
+    query getPortToPortDistance($$originPort: String!, $$destinationPort:String!, $$eca: Boolean!, $$antiPiracy: Boolean! ){
+    getPortToPortDistance(originPort: $$originPort, destinationPort: $$destinationPort, eca: $$eca, antiPiracy: $$antiPiracy){
+          value
+          suezRoute
+    }
+    }
+    """
   
 
 
@@ -358,28 +368,41 @@ object Queries {
 
   case class DistanceRequest(from: String, to: String)
 
-  def distance(from: String, to: String): Future[PortDistance] = {
+  def distance(client: GraphQLClient, from: String, to: String): Future[PortDistance] = {
     if (from == to) {
       Future.successful(PortDistance(value = 0.0, suezRoute = false))
     } else {
-     
-      //val q = client.query[DistanceResult](distanceQuery, DistanceInput(from, to, antiPiracy, eca))
-      //val data: Future[GraphQLResponse[DistanceResult]] = q.result
+      val eca = true
+      val antiPiracy = true
+
+
+      val q: GraphQLCursor[DistanceResult, DistanceInput] = 
+          client.query(distanceQuery, DistanceInput(originPort = from, destinationPort = to, antiPiracy = antiPiracy, eca = eca))
+      val data: Future[GraphQLResponse[DistanceResult]] = q.result
+
+      //val q = client.query[DistanceResult][DistanceInput](distanceQuery, DistanceInput(originPort = from, destinationPort = to, antiPiracy = antiPiracy, eca = eca))
+      //val data: Future[GraphQLResponse[DistanceResult][DistanceInput]] = q.result
+      data.map {
+        case Left(value) =>
+        throw(new Exception(s"Couldn't get data "))
+        case Right(value) =>
+          value.data.getPortToPortDistance
+      }
       //use the same ports endpoint to requests portToPort Distance
-      val req = requestGQL(portsEndpoint, distanceQ(from, to)).map { res =>
+      /*val req = requestGQL(portsEndpoint, distanceQ(from, to)).map { res =>
         getData(res, "getPortToPortDistance").as[PortDistance].right.get
       }
-      req
+      req*/
     }
   }
 
-  def distances(reqs: Seq[DistanceRequest]): Future[Seq[PortDistance]] = {
+  /*def distances(reqs: Seq[DistanceRequest]): Future[Seq[PortDistance]] = {
     val queries = reqs.map { r =>
       distance(r.from, r.to)
       
     }
     Future.sequence(queries)
-  }
+  }*/
 
 
 
