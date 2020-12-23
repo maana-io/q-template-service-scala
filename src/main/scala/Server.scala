@@ -122,7 +122,7 @@ object Server extends App with CorsSupport {
     val client = MaanaClient().maanaClient
   }
  
- 
+
   // force initialization of one offs
   //this requires a connection to the ports service
   Shared.init(Client.client)

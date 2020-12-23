@@ -9,6 +9,8 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import com.github.jarlakxen.drunk.GraphQLClient
 
+import Server.Client.client
+
 
 //only deals with ports and distances 
 object Shared {
@@ -60,7 +62,7 @@ object Shared {
   }
 
   var portMapF : java.util.concurrent.atomic.AtomicReference[Future[PortMap]] = new java.util.concurrent.atomic.AtomicReference(null)
-  def portMap : PortMap =  AwaitWithRetry(portMapF.get, getPorts(_))
+  def portMap : PortMap =  AwaitWithRetry(portMapF.get, getPorts(client))
 
 
 //  def getContracts: Unit =
@@ -93,12 +95,10 @@ object Shared {
       out
     }
 
-    
-
-  
-
     val f = portsS.map { ports =>
+      
       ports.map { p =>
+      println(p.id)
         p.id -> p
       }.toMap
     }

@@ -30,6 +30,7 @@ import Scalars._      // Required for DateTime Scalar
 import QueryInputs._
 import org.joda.time.DateTime
 
+import Server.Client.client
 
 
 object Schema {
@@ -530,6 +531,7 @@ object Schema {
    
     def checkActions(actions: Seq[PortAction]) : Boolean = actions.forall {action =>
       val port = portMap(action.portId)
+      println(port)
       dockingFeasable(vessel, port) && {
         val invalidRanges = portIncompatabilities.getOrElse(action.portId, Vector.empty)
         // TODO this is too aggressive but safe - should only remove on inclusion and adjust arrival times for loading/unloading
@@ -638,12 +640,18 @@ object Schema {
 
       Schedule.ConstantValues.createConstants(constants)
 
+      println("created data")
+
 
       val context = if (useGlobalDistanceCache) {
+        println("context")
         Schedule.Context(portMap = Shared.portMap, distanceCache = globalDistanceCache)
+        
       } else {
         Schedule.Context(portMap = Shared.portMap)
       }
+
+      println("got context")
 
 
       // Easier to debug none parallel version

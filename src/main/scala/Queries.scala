@@ -23,7 +23,7 @@ import com.github.jarlakxen.drunk._
 import io.circe._, io.circe.generic.semiauto._
 import sangria.macros._
 
-
+import Server.Client.client
 
 // TODO report query errors out to client
 // TODO move to Fanar Logic service endpoint
@@ -41,6 +41,10 @@ object Queries {
   val logicEndpoint = conf.getString("app.fanarLogicEndpoint")
   val requirementsEndpoint = conf.getString("app.requirementsEndpoint")
 
+  val clientEndpoint = "https://aatcfanar-test02.knowledge.maana.io:8443/service/ports/graphql"
+
+  
+
   //println(s"portsEndpoint at $portsEndpoint")
   //println(s"logicEndpoint at $logicEndpoint")
   //println(s"requirementsEndpoint at $requirementsEndpoint")
@@ -49,7 +53,7 @@ object Queries {
   //this should be able to connect to the shipping model
   //val portsEndpoint = "https://aatcfanar-test03.knowledge.maana.io:8443/service/e1a8f4bf-9f7a-46a9-852c-66169c96cc76/graphql"
   //val authorization ="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik5ESkZSVFF5TlVRMFJETTFSRUpHTkRnek0wTTJNVEF5UWpVMk9EZ3dNamMzTVRBek5rRTFRZyJ9.eyJpc3MiOiJodHRwczovL21hYW5hLWFhdGMuZXUuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDVkZWZlZTJiZjc3ZTExMGU5ZGNlODAzYiIsImF1ZCI6WyJodHRwczovL2FhdGMubWFhbmEuaW8vIiwiaHR0cHM6Ly9tYWFuYS1hYXRjLmV1LmF1dGgwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE1NzkxMjYwMzQsImV4cCI6MTU3OTIxMjQzNCwiYXpwIjoidkhSOWdWbE42OVRWUm13N1BjUmh6amRtNGRmSVp4TlgiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIn0.A8E8TFolVx1WvuMJh0qXQ8ayhmDuxx_B7XVBedQrb4kEyXRkJB_LXE4bbI2av15g19tDJo2kXEdWgAxM_94uxwebIh7YOUNKi5kkTRDcyRkC8i8-zrGdl2h5oqTrp2XZq2aomD3kY58DFXXQDCJYmny5ZuthSdeH8QGDAehpf6k4I-nA5WSFIglgWnHQVixoNjz0YxXn6wS9AUTRK6YOFApLG7LI376cTIq08L4JQm6W52UoSYmWvXZhKse-gSLPYymfftzx9eodAgVARRJxKyv_-XvXpo9c8RBaXmHequwvDedhNaVTKCaMRNuEAfsQFNp8LfRmT6_KHDXtY-8lHA"
-  //val authHeader = headers.Authorization(OAuth2BearerToken(authorization))
+  //val authHeader = headers.Authorization(OAuth2BearerToken(client.access_token))
   val acceptHeader = headers.Accept(`text/html`, `application/json`, `application/octet-stream`)
 
   implicit val system = Server.system
@@ -303,13 +307,13 @@ object Queries {
     //println(portsQuery)
 
 
-    val q = client.query[AllPortsFromCacheResult](portsQuery)
+    val q: GraphQLCursor[AllPortsFromCacheResult, Nothing] = client.query[AllPortsFromCacheResult](portsQuery)
     val data: Future[GraphQLResponse[AllPortsFromCacheResult]] = q.result
     data.map {
       case Left(value) =>
        throw(new Exception(s"Couldn't get data "))
       case Right(value) =>
-        println(value)
+        //println(value)
         value.data.allPortsFromCache.map (p => Schema.Port(
           id = p.id,
           feeDollars = p.averageFee,
@@ -374,8 +378,10 @@ object Queries {
     } else {
       val eca = true
       val antiPiracy = true
+      println(from)
+      println(to)
 
-
+      //had to use the cursor to make it compile
       val q: GraphQLCursor[DistanceResult, DistanceInput] = 
           client.query(distanceQuery, DistanceInput(originPort = from, destinationPort = to, antiPiracy = antiPiracy, eca = eca))
       val data: Future[GraphQLResponse[DistanceResult]] = q.result
