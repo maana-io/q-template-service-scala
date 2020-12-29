@@ -232,8 +232,10 @@ query detailedSchedules {
   ){
     vessel
     requirements{
+      id
       cost
       actions{
+        id
         type
       }
     }

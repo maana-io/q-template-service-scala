@@ -842,14 +842,14 @@ object Schedule {
         (None, vsNow)
       else
         (Some(ScheduleResults.Action(
-          id = vessel.id + "refuel",
+          id = vessel.id + " refuel",
           `type` = "refuel",
           cost = actualCost(0, cost.refuelingAction.duration),      // Fuel is paid for by use so it's just time -- // TODO  is that what we want to report here?
           speed = 0.0,
           startsAt = toDate(vsNow),
           // Note refueling Action costs are actually deltas over the base Travel and Wait cost
           endState = ScheduleResults.State(
-            id = vessel.id + "refuel end state",
+            id = vessel.id + " refuel end state",
             endsAt = toDate(refuelEnds),
             fuelRemaining = vessel.fuelCapacity,
             lastProduct = vs.currentProduct.originalId,
@@ -864,13 +864,13 @@ object Schedule {
     val cleaningAction = if (cost.cleaningAction.duration == 0)
       None
     else Some(ScheduleResults.Action(
-      id =  vessel.id + "clean",
+      id =  vessel.id + " clean",
       `type` = "clean",
       cost = cost.cleaningAction.fuelCost + cost.cleaningAction.dieselCost,
       speed = 0.0,
       startsAt = toDate(refueling0End),
       endState = ScheduleResults.State(
-        id = vessel.id + "clean end state",
+        id = vessel.id + " clean end state",
         endsAt = toDate(cleaningEnd),
         fuelRemaining = vs.currentFuel - cost.cleaningAction.fuelConsumed, // cleaning doesn't consume fuel, just time for now - fuel is accounted for by travel
         lastProduct = "", // not correct
@@ -925,13 +925,13 @@ object Schedule {
         val refuelEnds = voyageEnd + cost.refuelingAction.refuelingDuration
         (
           Some(ScheduleResults.Action(
-            id = vessel.id + "voyage",
+            id = vessel.id + " voyage",
             `type` = "voyage",
             cost = actualCost(cost.refuelingAction.fuel1 * ConstantValues.defaultFuelCost, cost.refuelingAction.travel1Duration),
             speed = cost.travelSpeed,
             startsAt = toDate(refueling0End),
             endState = ScheduleResults.State(
-              id = vessel.id + "voyage end state",
+              id = vessel.id + " voyage end state",
               endsAt = toDate(voyageEnd),
               fuelRemaining = vs.currentFuel - cost.refuelingAction.fuel1,
               lastProduct = vs.currentProduct.originalId, // Not necesarilly correct
@@ -939,13 +939,13 @@ object Schedule {
             )
           )),
           Some(ScheduleResults.Action(
-            id = vessel.id + "refuel",
+            id = vessel.id + " refuel",
             `type` = "refuel",
             cost = actualCost(0, cost.refuelingAction.refuelingDuration),       // Fuel is paid for on use // TODO is this the right cost to return?
             speed = 0.0,
             startsAt = toDate(voyageEnd),
             endState = ScheduleResults.State(
-              id = vessel.id + "refuel end state",
+              id = vessel.id + " refuel end state",
               endsAt = toDate(refuelEnds),
               fuelRemaining = vessel.fuelCapacity,
               lastProduct = vs.currentProduct.originalId, // Not necesarilly correct
@@ -953,13 +953,13 @@ object Schedule {
             )
           )),
           Some(ScheduleResults.Action(
-            id =  vessel.id + "voyage",
+            id =  vessel.id + " voyage",
             `type` = "voyage",
             cost = actualCost( (cost.refuelingAction.fuel2 * ConstantValues.defaultFuelCost) + cost.suezCost, cost.refuelingAction.travel2Duration),
             speed = cost.travelSpeed,
             startsAt = toDate(refuelEnds),
             endState = ScheduleResults.State(
-              id = vessel.id + "voyage end state",
+              id = vessel.id + " voyage end state",
               endsAt = toDate(refuelEnds + cost.refuelingAction.travel2Duration),
               fuelRemaining = vessel.fuelCapacity - cost.refuelingAction.fuel2,
               lastProduct = vs.currentProduct.originalId,
@@ -977,13 +977,13 @@ object Schedule {
             None
           } else {
             Some(ScheduleResults.Action(
-              id = vessel.id + "voyage",
+              id = vessel.id + " voyage",
               `type` = "voyage",
               cost = actualCost(((cost.fuelConsumed - cost.refuelingAction.fuel) * ConstantValues.defaultFuelCost) + cost.suezCost, cost.travelDuration),   // Account for refueling action at start
               speed = cost.travelSpeed,
               startsAt = toDate(refueling0End),
               endState = ScheduleResults.State(
-                id = vessel.id + "voyage end state",
+                id = vessel.id + " voyage end state",
                 endsAt = toDate(refueling0End + cost.travelDuration),
                 fuelRemaining = vs.currentFuel - cost.fuelConsumed,
                 lastProduct = vs.currentProduct.originalId,
@@ -1002,13 +1002,13 @@ object Schedule {
       None
     } else {
       Some(ScheduleResults.Action(
-        id = vessel.id + "wait",
+        id = vessel.id + " wait",
         `type` = "wait",
         cost = actualCost(0, cost.duration),
         speed = 0.0,
         startsAt = toDate(travelEnd),
         endState = ScheduleResults.State(
-          id = vessel.id + "wait end state",
+          id = vessel.id + " wait end state",
           endsAt = toDate(travelEnd + waitTime),
           fuelRemaining = fuelAfterTravel,
           lastProduct = vs.currentProduct.originalId, // Not necesarilly correct
@@ -1065,13 +1065,13 @@ object Schedule {
           case l : Load =>
             val cost = l.cost(vs.vessel, vs.now)
             val res = as :+ ScheduleResults.Action(
-              id = vessel.id + "load",
+              id = vessel.id + " load",
               `type`= "load",
               cost = actualCost(cost.cost, cost.duration),
               speed = 0.0,
               startsAt = toDate(cost.startDate),
               endState = ScheduleResults.State(
-                id = vessel.id + "load end state",
+                id = vessel.id + " load end state",
                 endsAt = toDate(cost.startDate + cost.duration),
                 fuelRemaining = vs.currentFuel,
                 lastProduct = l.product.originalId,
@@ -1083,13 +1083,13 @@ object Schedule {
           case l : Unload =>
             val cost = l.cost(vs.vessel, vs.now)
             val res = as :+ ScheduleResults.Action(
-              id = vessel.id + "unload",
+              id = vessel.id + " unload",
               `type`= "unload",
               cost = actualCost(cost.cost, cost.duration),
               speed = 0.0,
               startsAt = toDate(cost.startDate),
               endState = ScheduleResults.State(
-                id = vessel.id + "unload end state",
+                id = vessel.id + " unload end state",
                 endsAt = toDate(cost.startDate + cost.duration),
                 fuelRemaining = vs.currentFuel,
                 lastProduct = l.product.originalId,

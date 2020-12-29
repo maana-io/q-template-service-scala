@@ -77,7 +77,6 @@ object Shared {
       val refuelingPorts = ps.filter(_.canRefuel).toVector
       // Note only care for ports that can't provide refueling
       val res = ps.filterNot(_.canRefuel).map { p =>
-        println(p.id)
         if (!p.canRefuel) {
           val l0 = (p.latitude, p.longitude)
           val neighbors = refuelingPorts
