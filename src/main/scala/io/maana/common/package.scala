@@ -16,9 +16,9 @@ package object common {
   case class AppError(msg: String) extends Error(msg) with UserFacingError
 
   def clientForUri(
-                    uri: Uri,
-                    headers: immutable.Seq[HttpHeader]
-                  )(implicit system: ActorSystem, mat: ActorMaterializer): GraphQLClient = {
+      uri: Uri,
+      headers: immutable.Seq[HttpHeader]
+  )(implicit system: ActorSystem, mat: ActorMaterializer): GraphQLClient = {
     val http: HttpExt = Http()
     val flow: Flow[HttpRequest, HttpResponse, Future[OutgoingConnection]] =
       uri.scheme.toLowerCase match {

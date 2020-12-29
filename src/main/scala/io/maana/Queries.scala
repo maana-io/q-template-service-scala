@@ -29,7 +29,7 @@ object Queries {
   // EC for queries
   implicit val executionContext = ExecutionContext.fromExecutor(new java.util.concurrent.ForkJoinPool(16))
 
-  // TODO should all come out off the logic Enmdpoint
+  // TODO should all come out off the logic Endpoint
   val portsEndpoint        = conf.getString("app.portsEndpoint")
   val logicEndpoint        = conf.getString("app.fanarLogicEndpoint")
   val requirementsEndpoint = conf.getString("app.requirementsEndpoint")
@@ -67,7 +67,7 @@ object Queries {
     out
   }
 
-  val cleaningTimeMultiplerTable: Map[String, Double] = Map(
+  val cleaningTimeMultiplierTable: Map[String, Double] = Map(
     "mr"      -> 1.0,
     "lr1"     -> 1.5,
     "lr2"     -> 1.5,

@@ -18,7 +18,7 @@ object Scalars {
     case Failure(_)    ⇒ Left(DateCoercionViolation)
   }
 
-  // Need explicit Json decoder for input ojects -- Thanks Sangria
+  // Need explicit Json decoder for input objects -- Thanks Sangria
   implicit val decodeDateTime: Decoder[DateTime] = new Decoder[DateTime] {
     final def apply(c: HCursor): Decoder.Result[DateTime] = {
       val out = for {

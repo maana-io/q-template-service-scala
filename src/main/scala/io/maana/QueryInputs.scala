@@ -16,9 +16,8 @@ object QueryInputs {
 
   //def schedules(date: DateTime, vessels: Seq[VesselInput], requirements: Seq[RequirementInput]): String = Profile.prof("Query: schedules")
 
-
   //need to update this with the new vessel input
-  //stops having to query for the vessels and maintaing a cache
+  //stops having to query for the vessels and maintaining a cache
   sealed trait VesselInputBase {
     def id: VesselId
     def availableFrom: DateTime
@@ -59,7 +58,7 @@ object QueryInputs {
   case class CarryingCapacity(
       id: String,
       fuelCapacity: Double,
-      diesalCapacity: Double,
+      dieselCapacity: Double,
       gasOilCapacity: Double,
   )
 
@@ -147,7 +146,7 @@ object QueryInputs {
       imoClass: String,
   )
 
-  @GraphQLDescription("new vessesl model")
+  @GraphQLDescription("new vessel model")
   case class VesselWithQ88AndStatusInput(
       id: VesselId,
       q88Vessel: Q88VesselInput,
@@ -206,7 +205,7 @@ object QueryInputs {
       operationalOverhead: Int
   )
 
-  // sangira stuff that builds the schema
+  // sangria stuff that builds the schema
   implicit val DateRangeInputType = deriveInputObjectType[DateRangeInput](
     ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
   )

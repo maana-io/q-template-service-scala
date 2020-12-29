@@ -11,7 +11,7 @@ import java.util.concurrent.{ConcurrentHashMap, Executors}
 
 import scala.language.implicitConversions
 
-//need to figure out what this is for.  looks like to do with cleaning time but we dont use that right now
+//need to figure out what this is for.  looks like to do with cleaning time but we don't use that right now
 import io.maana.Queries.productMappings
 import io.maana.ScheduleResults.DetailedSchedule
 import sangria.marshalling.circe._
@@ -74,8 +74,8 @@ object Schema {
       overallLength: Double,
       aftParallelBodyDistance: Double,
       forwardParallelBodyDistance: Double,
-      ladenBunkerRequirmentsMtPerDay: Map[Int, Double],
-      ballastBunkerRequirmentsMtPerDay: Map[Int, Double],
+      ladenBunkerRequirementsMtPerDay: Map[Int, Double],
+      ballastBunkerRequirementsMtPerDay: Map[Int, Double],
       cleaningTimeMultiplier: Double,
       cleaningRates: Vector[Double],
       cleanStatus: CleanStatus,
@@ -135,7 +135,7 @@ object Schema {
 
   //classes / functions
 
-  //this is also imported by QueryInput.scala although I dont think its used
+  //this is also imported by QueryInput.scala although I don't think its used
   case class DateRange(startDate: Long, endDate: Long) {
     def inside(d: DateRange): Boolean   = (d.startDate <= this.startDate) && (d.endDate >= this.endDate)
     def contains(d: Long): Boolean      = (this.startDate <= d) && (this.endDate >= d)
@@ -151,11 +151,11 @@ object Schema {
   }
 
   case class PortRestriction(dateRange: DateRange)
-  type PortIncompatabilityMap = Map[PortId, Seq[PortRestriction]]
+  type PortIncompatibilityMap = Map[PortId, Seq[PortRestriction]]
 
   //not sure we need this either
   case class TerminalRestriction(dateRange: DateRange)
-  type TerminalIncompatabilityMap = Map[TerminalId, Seq[TerminalRestriction]]
+  type TerminalIncompatibilityMap = Map[TerminalId, Seq[TerminalRestriction]]
 
   case class Berth(
       id: String,
@@ -187,9 +187,9 @@ object Schema {
       startFuel: Double,
       lastProduct: Schema.Product,
       startLocation: PortId,
-      portRestrictions: PortIncompatabilityMap,
-      terminalRestrictions: TerminalIncompatabilityMap,
-      unvailableTimes: Seq[UnavailableTime],
+      portRestrictions: PortIncompatibilityMap,
+      terminalRestrictions: TerminalIncompatibilityMap,
+      unavailableTimes: Seq[UnavailableTime],
       dimensions: VesselDimensions,
       contract: VesselContract
   )
@@ -198,7 +198,7 @@ object Schema {
   type VesselContractMap  = Map[VesselId, VesselContract]
 
   //functions
-  def toPortRestrictions(portRestrictions: Seq[QueryInputs.PortRestriction]): PortIncompatabilityMap =
+  def toPortRestrictions(portRestrictions: Seq[QueryInputs.PortRestriction]): PortIncompatibilityMap =
     portRestrictions
       .filter(
         in =>
@@ -216,7 +216,7 @@ object Schema {
       .map(a => a._1 -> a._2.map { _._2 })
       .toMap
 
-  def toTerminalRestrictions(portRestrictions: Seq[QueryInputs.PortRestriction]): TerminalIncompatabilityMap =
+  def toTerminalRestrictions(portRestrictions: Seq[QueryInputs.PortRestriction]): TerminalIncompatibilityMap =
     portRestrictions
       .filter(
         in =>
@@ -349,7 +349,7 @@ object Schema {
         portRestrictions = toPortRestrictions(in.vessel.portRestrictions.getOrElse(Seq.empty)),
         //what is terminalRestrictions used for?
         terminalRestrictions = toTerminalRestrictions(in.vessel.portRestrictions.getOrElse(Seq.empty)),
-        unvailableTimes = combineRanges(
+        unavailableTimes = combineRanges(
           in.vessel.unavailableTimes
             .getOrElse(Seq.empty)
             .map(
@@ -401,7 +401,7 @@ object Schema {
             overallLength = in.q88Vessel.dimensions.overallLength,
             aftParallelBodyDistance = in.q88Vessel.dimensions.aftParallelBodyDistance,
             forwardParallelBodyDistance = in.q88Vessel.dimensions.forwardParallelBodyDistance,
-            ladenBunkerRequirmentsMtPerDay = Map(
+            ladenBunkerRequirementsMtPerDay = Map(
               (10 * 2).toInt   -> in.vessel.bunkerRequirements.ballast_speed_11, // No 10
               (10.5 * 2).toInt -> in.vessel.bunkerRequirements.ballast_speed_11, // No 10.5
               (11 * 2).toInt   -> in.vessel.bunkerRequirements.ballast_speed_11,
@@ -415,7 +415,7 @@ object Schema {
               (15 * 2).toInt   -> in.vessel.bunkerRequirements.ballast_speed_15,
               (15.5 * 2).toInt -> in.vessel.bunkerRequirements.ballast_speed_15, // No 15.5
             ),
-            ballastBunkerRequirmentsMtPerDay = Map(
+            ballastBunkerRequirementsMtPerDay = Map(
               (10 * 2).toInt   -> in.vessel.bunkerRequirements.laden_speed_11, // No 10
               (10.5 * 2).toInt -> in.vessel.bunkerRequirements.laden_speed_11, // No 10.5
               (11 * 2).toInt   -> in.vessel.bunkerRequirements.laden_speed_11,
@@ -489,7 +489,7 @@ object Schema {
         portRestrictions = toPortRestrictions(in.vessel.portRestrictions.getOrElse(Seq.empty)),
         //what is terminalRestrictions used for?
         terminalRestrictions = toTerminalRestrictions(in.vessel.portRestrictions.getOrElse(Seq.empty)),
-        unvailableTimes = combineRanges(
+        unavailableTimes = combineRanges(
           in.vessel.unavailableTimes
             .getOrElse(Seq.empty)
             .map(
@@ -517,7 +517,7 @@ object Schema {
             overallLength = in.q88Vessel.dimensions.overallLength,
             aftParallelBodyDistance = in.q88Vessel.dimensions.aftParallelBodyDistance,
             forwardParallelBodyDistance = in.q88Vessel.dimensions.forwardParallelBodyDistance,
-            ladenBunkerRequirmentsMtPerDay = Map(
+            ladenBunkerRequirementsMtPerDay = Map(
               (10 * 2).toInt   -> in.vessel.bunkerRequirements.ballast_speed_11, // No 10
               (10.5 * 2).toInt -> in.vessel.bunkerRequirements.ballast_speed_11, // No 10.5
               (11 * 2).toInt   -> in.vessel.bunkerRequirements.ballast_speed_11,
@@ -531,7 +531,7 @@ object Schema {
               (15 * 2).toInt   -> in.vessel.bunkerRequirements.ballast_speed_15,
               (15.5 * 2).toInt -> in.vessel.bunkerRequirements.ballast_speed_15, // No 15.5
             ),
-            ballastBunkerRequirmentsMtPerDay = Map(
+            ballastBunkerRequirementsMtPerDay = Map(
               (10 * 2).toInt   -> in.vessel.bunkerRequirements.laden_speed_11, // No 10
               (10.5 * 2).toInt -> in.vessel.bunkerRequirements.laden_speed_11, // No 10.5
               (11 * 2).toInt   -> in.vessel.bunkerRequirements.laden_speed_11,
@@ -612,7 +612,7 @@ object Schema {
     }
   }
 
-  def dockingFeasable(vessel: VesselDimensions, port: Port): Boolean =
+  def dockingFeasible(vessel: VesselDimensions, port: Port): Boolean =
     port.berths.exists { b =>
       (b.maxBeam == 0 || b.maxBeam >= vessel.beam) &&
       (b.maxOverallLength == 0 || b.maxOverallLength >= vessel.overallLength) &&
@@ -624,8 +624,8 @@ object Schema {
   def portCheck(
       vessel: VesselDimensions,
       requirement: Requirement,
-      portIncompatabilities: PortIncompatabilityMap,
-      terminalIncompatibilities: TerminalIncompatabilityMap,
+      portIncompatibilities: PortIncompatibilityMap,
+      terminalIncompatibilities: TerminalIncompatibilityMap,
       portMap: PortMap
   ): Either[String, Unit] = {
     // requirement can not require stopping at a port that is incompatible with the vessel within this date range
@@ -633,8 +633,8 @@ object Schema {
     def checkActions(actions: Seq[PortAction]): Boolean = actions.forall { action =>
       val port = portMap(action.portId)
       println(port)
-      dockingFeasable(vessel, port) && {
-        val invalidRanges = portIncompatabilities.getOrElse(action.portId, Vector.empty)
+      dockingFeasible(vessel, port) && {
+        val invalidRanges = portIncompatibilities.getOrElse(action.portId, Vector.empty)
         // TODO this is too aggressive but safe - should only remove on inclusion and adjust arrival times for loading/unloading
         invalidRanges.forall(r => !action.valid.overlaps(r.dateRange))
       } && {
@@ -671,8 +671,8 @@ object Schema {
       vessel: VesselDimensions,
       contract: VesselContract,
       requirement: Requirement,
-      portIncompatabilities: PortIncompatabilityMap,
-      terminalIncompatibilities: TerminalIncompatabilityMap,
+      portIncompatibilities: PortIncompatibilityMap,
+      terminalIncompatibilities: TerminalIncompatibilityMap,
       portMap: PortMap
   ): Either[String, Unit] = {
     def valid(): Either[String, Unit] =
@@ -681,7 +681,7 @@ object Schema {
         _ <- contractNotExpired(contract, requirement)
         _ <- checkClean(vessel, requirement)
         _ <- capacityCheck(vessel, requirement)
-        _ <- portCheck(vessel, requirement, portIncompatabilities, terminalIncompatibilities, portMap)
+        _ <- portCheck(vessel, requirement, portIncompatibilities, terminalIncompatibilities, portMap)
       } yield ()
 
     val res = if (requirement.locked.isDefined) {
@@ -703,12 +703,12 @@ object Schema {
       vessel: VesselDimensions,
       contract: VesselContract,
       requirements: Seq[Requirement],
-      portIncompatabilities: PortIncompatabilityMap,
-      terminalIncompatibilities: TerminalIncompatabilityMap,
+      portIncompatibilities: PortIncompatibilityMap,
+      terminalIncompatibilities: TerminalIncompatibilityMap,
       portMap: PortMap
   ): Seq[Requirement] =
     requirements.filter(
-      r => checkRequirement(vessel, contract, r, portIncompatabilities, terminalIncompatibilities, portMap).isRight
+      r => checkRequirement(vessel, contract, r, portIncompatibilities, terminalIncompatibilities, portMap).isRight
     )
 
   //resolvers the service exposes to Q
@@ -763,7 +763,7 @@ object Schema {
       val res0 = Profile.prof("Simulation.schedule") {
         val futures = vesselsWithDimensions.map { vessel =>
           Future {
-            //these are candiate requirements to schedule on the vessel after a bunch of checks
+            //these are candidate requirements to schedule on the vessel after a bunch of checks
             val vesselCandidates = filteredRequirements(
               vessel.dimensions,
               vessel.contract,

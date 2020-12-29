@@ -35,23 +35,23 @@ object Schedule {
 
   //val defaultFuelCost = 400
   //val defaultDieselCost = 650
-  //val refuelThresholdAmmount = 400
-  //val criticalFuelThresholdAmmount = 300
+  //val refuelThresholdAmount = 400
+  //val criticalFuelThresholdAmount = 300
   val operationalOverhead = 9 * secondsPerHour.toLong
 
   object ConstantValues {
-    var defaultFuelCost              = 0
-    var defaultDieselCost            = 0
-    var refuelThresholdAmmount       = 0
-    var criticalFuelThresholdAmmount = 0
-    var operationalOverhead          = secondsPerHour.toLong
+    var defaultFuelCost             = 0
+    var defaultDieselCost           = 0
+    var refuelThresholdAmount       = 0
+    var criticalFuelThresholdAmount = 0
+    var operationalOverhead         = secondsPerHour.toLong
 
     def createConstants(constants: Constants) {
       //id = "Optimization Constants"
       defaultFuelCost = constants.defaultFuelPrice
       defaultDieselCost = constants.defaultDieselPrice
-      refuelThresholdAmmount = constants.refuelThreshold
-      criticalFuelThresholdAmmount = constants.criticalRefuelThreshold
+      refuelThresholdAmount = constants.refuelThreshold
+      criticalFuelThresholdAmount = constants.criticalRefuelThreshold
       operationalOverhead = constants.operationalOverhead * secondsPerHour.toLong
 
     }
@@ -152,7 +152,7 @@ object Schedule {
         requirement: Requirement,
         vessel: Schema.VesselDimensions,
         contractExpiry: Long,
-        portRestrictions: Schema.PortIncompatabilityMap,
+        portRestrictions: Schema.PortIncompatibilityMap,
         unavailableTimes: Seq[UnavailableTime],
         location: Schema.Port,
         startDate: Long,
@@ -191,7 +191,7 @@ object Schedule {
 
     def refuel(
         vessel: Schema.VesselDimensions,
-        portRestrictions: Schema.PortIncompatabilityMap,
+        portRestrictions: Schema.PortIncompatibilityMap,
         now: Long,
         speed: Double,
         fuelConsumedPerDay: Double,
@@ -224,19 +224,19 @@ object Schedule {
         // TODO need a test case that triggers this
         // Find optimal intermediate port - could be cached - but infrequent
         println(s"Refueling: looking for refueling port between ${at.id} and ${target.id}")
-        // val maxRange = ((currentFuel - (criticalFuelThresholdAmmount)) / fuelConsumedPerDay) * (speed * hoursPerDay)
+        // val maxRange = ((currentFuel - (criticalFuelThresholdAmount)) / fuelConsumedPerDay) * (speed * hoursPerDay)
         val maxRange = (currentFuel / fuelConsumedPerDay) * (speed * hoursPerDay)
         // Requires 2 * N distance lookups where N is the number of candidates
         // TODO make requests in parallel
         val unsortedPorts = at.neighbors
           .filter { p =>
-            Schema.dockingFeasable(vessel, p)
+            Schema.dockingFeasible(vessel, p)
           } // Must be able to enter the port
           .map { n =>
             n -> (distanceNm(at.id, n.id).value, distanceNm(n.id, target.id).value)
           }
           .filter(_._2._1 < maxRange) // Must be within range
-          .filter { // Port incompatabilities - this isn't quite right, vessel could wait for port incompatibility to expire
+          .filter { // Port incompatibilities - this isn't quite right, vessel could wait for port incompatibility to expire
             case (p, (d1, d2)) =>
               val invalidRanges = portRestrictions.getOrElse(p.id, Seq.empty)
               val arrival       = (now + d1).toLong
@@ -395,7 +395,7 @@ object Schedule {
   // Common code for prepare and Travel Actions
   def prepareAndTravelCost(
       vessel: Schema.VesselDimensions,
-      portRestrictions: Schema.PortIncompatabilityMap,
+      portRestrictions: Schema.PortIncompatibilityMap,
       startDate: Long,
       startFuel: Double,
       currentPort: Schema.Port,
@@ -455,7 +455,7 @@ object Schedule {
         val waitDuration = Math.max(0, (completeAfter - startDate) - (travelDuration + refuelDuration))
         // Cleaning can take place while travelling or waiting but not refueling
         val cleaningDuration = Math.max(0, cleaningAction.duration - (travelDuration + waitDuration))
-        val totalCost        = fuelConsumed * ConstantValues.defaultFuelCost + refuelingAction.cost + cleaningAction.totalCost + suezCost // based on unrefuled consumption cost Delta included in refueling action
+        val totalCost        = fuelConsumed * ConstantValues.defaultFuelCost + refuelingAction.cost + cleaningAction.totalCost + suezCost // based on unrefueled consumption cost Delta included in refueling action
         // waiting is not done at ports, so assumed cost is just charter cost
         // Note we don't actually need to account for the charter cost, it's being paid no matter what the ship is doing
         val totalDuration     = travelDuration + waitDuration + refuelDuration + cleaningDuration
@@ -505,7 +505,7 @@ object Schedule {
 
     def cost(
         vessel: Schema.VesselDimensions,
-        portRestrictions: Schema.PortIncompatabilityMap,
+        portRestrictions: Schema.PortIncompatibilityMap,
         startDate: Long,
         startFuel: Double,
         currentPort: Schema.Port,
@@ -525,7 +525,7 @@ object Schedule {
         distance,
         vessel.ballastEconomicSpeed,
         vessel.ballastMaxSpeed,
-        vessel.ballastBunkerRequirmentsMtPerDay,
+        vessel.ballastBunkerRequirementsMtPerDay,
         completeAfter,
         startBefore,
         dest,
@@ -546,7 +546,7 @@ object Schedule {
     // Subsequent Voyages always laden
     def cost(
         vessel: Schema.VesselDimensions,
-        portRestrictions: Schema.PortIncompatabilityMap,
+        portRestrictions: Schema.PortIncompatibilityMap,
         startDate: Long,
         startFuel: Double,
         currentPort: Schema.Port
@@ -561,7 +561,7 @@ object Schedule {
         distance,
         vessel.ladenEconomicSpeed,
         vessel.ladenMaxSpeed,
-        vessel.ladenBunkerRequirmentsMtPerDay,
+        vessel.ladenBunkerRequirementsMtPerDay,
         completeAfter,
         startBefore,
         dest,
@@ -627,7 +627,7 @@ object Schedule {
     def costInner(
         vessel: Schema.VesselDimensions,
         contractExpiry: Long,
-        portRestrictions: Schema.PortIncompatabilityMap,
+        portRestrictions: Schema.PortIncompatibilityMap,
         unavailableTimes: Seq[UnavailableTime],
         startDate: Long,
         startFuel: Double,
@@ -691,7 +691,7 @@ object Schedule {
     def cost(
         vessel: Schema.VesselDimensions,
         contractExpiry: Long,
-        portRestrictions: Schema.PortIncompatabilityMap,
+        portRestrictions: Schema.PortIncompatibilityMap,
         unavailableTimes: Seq[UnavailableTime],
         startDate: Long,
         startFuel: Double,
@@ -787,7 +787,7 @@ object Schedule {
   case class State(
       vessel: Schema.VesselDimensions,
       contract: Schema.VesselContract,
-      portRestrictions: Schema.PortIncompatabilityMap,
+      portRestrictions: Schema.PortIncompatibilityMap,
       totalCost: Double, // The thing we're minimizing
       port: Schema.Port,
       now: Long,
@@ -811,9 +811,9 @@ object Schedule {
 
   def pumpingTime(pumpRate: Double, quantity: Double): Long = Math.ceil(quantity / pumpRate).toLong
 
-  def fuelLow(fuel: Double): Boolean = fuel < ConstantValues.refuelThresholdAmmount
+  def fuelLow(fuel: Double): Boolean = fuel < ConstantValues.refuelThresholdAmount
 
-  def fuelCritical(fuel: Double): Boolean = fuel < ConstantValues.criticalFuelThresholdAmmount
+  def fuelCritical(fuel: Double): Boolean = fuel < ConstantValues.criticalFuelThresholdAmount
 
   case class Context(
       portMap: Map[PortId, Schema.Port],
@@ -865,7 +865,7 @@ object Schedule {
           currentFuel = startingFuel,
           currentProduct = vessel.lastProduct,
           candidateRequirements = reqs,
-          unavailableTimes = vessel.unvailableTimes
+          unavailableTimes = vessel.unavailableTimes
         )
 
    */
@@ -1000,7 +1000,7 @@ object Schedule {
       currentFuel = startingFuel,
       currentProduct = vessel.lastProduct,
       candidateRequirements = reqs,
-      unavailableTimes = vessel.unvailableTimes
+      unavailableTimes = vessel.unavailableTimes
     )
 
     val res0 = possibleSchedules(state)(context)
@@ -1217,7 +1217,7 @@ object Schedule {
             endState = ScheduleResults.State(
               endsAt = toDate(voyageEnd),
               fuelRemaining = vs.currentFuel - cost.refuelingAction.fuel1,
-              lastProduct = vs.currentProduct.originalId, // Not necesarilly correct
+              lastProduct = vs.currentProduct.originalId, // Not necessarily correct
               location = cost.refuelingAction.port.id
             )
           )),
@@ -1258,7 +1258,7 @@ object Schedule {
                 id = vessel.id + " voyage end state",
                 endsAt = toDate(voyageEnd),
                 fuelRemaining = vs.currentFuel - cost.refuelingAction.fuel1,
-                lastProduct = vs.currentProduct.originalId, // Not necesarilly correct
+                lastProduct = vs.currentProduct.originalId, // Not necessarily correct
                 location = cost.refuelingAction.port.id
               )
             )
@@ -1274,7 +1274,7 @@ object Schedule {
                 id = vessel.id + " refuel end state",
                 endsAt = toDate(refuelEnds),
                 fuelRemaining = vessel.fuelCapacity,
-                lastProduct = vs.currentProduct.originalId, // Not necesarilly correct
+                lastProduct = vs.currentProduct.originalId, // Not necessarily correct
                 location = cost.refuelingAction.port.id
               )
             )
@@ -1349,7 +1349,7 @@ object Schedule {
             id = vessel.id + " wait end state",
             endsAt = toDate(travelEnd + waitTime),
             fuelRemaining = fuelAfterTravel,
-            lastProduct = vs.currentProduct.originalId, // Not necesarilly correct
+            lastProduct = vs.currentProduct.originalId, // Not necessarily correct
             location = dest
           )
         )
@@ -1528,7 +1528,7 @@ object Schedule {
       currentFuel = startingFuel,
       currentProduct = vessel.lastProduct,
       candidateRequirements = List.empty,
-      unavailableTimes = vessel.unvailableTimes
+      unavailableTimes = vessel.unavailableTimes
     )
 
     val res = expandScheduleI(state, reqs)(context)
@@ -1562,7 +1562,7 @@ object Schedule {
         currentFuel = startingFuel,
         currentProduct = vessel.lastProduct,
         candidateRequirements = reqs,
-        unavailableTimes = vessel.unvailableTimes
+        unavailableTimes = vessel.unavailableTimes
       )
       // Generate the valid vessel Schedules - note there will be valid schedules of depth less than reqs.length
       val schedules = possibleSchedules(state)(context)
