@@ -95,7 +95,7 @@ object QueryInputs {
   )
 
   @GraphQLDescription("""Vessel cannot enter the specified port or terminal (only specify one or the other) during the restricted date range""")
-  case class PortRestriction(portId: Option[PortId], terminalId: Option[TerminalId], dateRange: DateRangeInput, reason: Option[String])
+  case class PortRestriction(id: String, portId: Option[PortId], terminalId: Option[TerminalId], dateRange: DateRangeInput, reason: Option[String])
 
   @GraphQLDescription("""Initial state of the vessel and at what point it becomes free for scheduling. Passing empty string as the lastProduct stops cleaning being scheduled for the first requirement. product can be specified as either an aramco product or a BP product""")
   case class VesselInput(id: VesselId, 
@@ -160,28 +160,62 @@ object QueryInputs {
 
 
   // sangira stuff that builds the schema
-  implicit val DateRangeInputType = deriveInputObjectType[DateRangeInput]()
-  implicit val VesselDimensionType = deriveInputObjectType[VesselDimensions]()
-  implicit val SpeedCapabilitiesType = deriveInputObjectType[SpeedCapabilities]()
-  implicit val CarryingCapacityType = deriveInputObjectType[CarryingCapacity]()
-  implicit val CurrentStatusType = deriveInputObjectType[CurrentStatus]()
-  implicit val BunkerRequirementsType =deriveInputObjectType[BunkerRequirements]()
-  implicit val PortRestrictionType = deriveInputObjectType[PortRestriction]()
+  implicit val DateRangeInputType = deriveInputObjectType[DateRangeInput](
+     ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
+  implicit val VesselDimensionType = deriveInputObjectType[VesselDimensions](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
+  implicit val SpeedCapabilitiesType = deriveInputObjectType[SpeedCapabilities](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
+  implicit val CarryingCapacityType = deriveInputObjectType[CarryingCapacity](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
+  implicit val CurrentStatusType = deriveInputObjectType[CurrentStatus](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
+  implicit val BunkerRequirementsType =deriveInputObjectType[BunkerRequirements](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
+  implicit val PortRestrictionType = deriveInputObjectType[PortRestriction](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
   
-  implicit val UnavailableTimeInputType = deriveInputObjectType[UnavailableTime]()
-  implicit val VesselDetailsType = deriveInputObjectType[VesselDetails]()
+  implicit val UnavailableTimeInputType = deriveInputObjectType[UnavailableTime](
+     ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
+  implicit val VesselDetailsType = deriveInputObjectType[VesselDetails](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
   
-  implicit val VesselInputType = deriveInputObjectType[VesselInput]()
-  implicit val ConstantsInputType = deriveInputObjectType[Constants]()
-  implicit val Q88VesselInputType=deriveInputObjectType[Q88VesselInput]()
+  implicit val VesselInputType = deriveInputObjectType[VesselInput](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
+  implicit val ConstantsInputType = deriveInputObjectType[Constants](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
+  implicit val Q88VesselInputType=deriveInputObjectType[Q88VesselInput](
+     ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
 
-  implicit val VesselActionInputType = deriveInputObjectType[VesselActionInput]()
-  implicit val RequirementInputType = deriveInputObjectType[RequirementInput]()
+  implicit val VesselActionInputType = deriveInputObjectType[VesselActionInput](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
+  implicit val RequirementInputType = deriveInputObjectType[RequirementInput](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
 
-  implicit val VesselWithQ88AndStatusInputType = deriveInputObjectType[VesselWithQ88AndStatusInput]()
-  implicit val VesselWithQ88AndStatusAndRequirementsInputInputType = deriveInputObjectType[VesselWithQ88AndStatusAndRequirementsInput]()
+  implicit val VesselWithQ88AndStatusInputType = deriveInputObjectType[VesselWithQ88AndStatusInput](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
+  implicit val VesselWithQ88AndStatusAndRequirementsInputInputType = deriveInputObjectType[VesselWithQ88AndStatusAndRequirementsInput](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
 
-  implicit val VesselWithRequirementsInputType = deriveInputObjectType[VesselWithRequirementsInput]()
+  implicit val VesselWithRequirementsInputType = deriveInputObjectType[VesselWithRequirementsInput](
+      ReplaceInputField("id", InputField("id", OptionInputType(IDType)))
+  )
 
 
 

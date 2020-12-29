@@ -58,10 +58,18 @@ object ScheduleResults {
   case class Requirement(id: String, cost: Double, actions: Seq[Action])
   case class State (id: String, endsAt: DateTime, fuelRemaining: Double, lastProduct: String, location: PortId)
   case class Action (id: String, `type`: String, cost: Double, speed: Double, startsAt: DateTime, endState: State)
-  case class DetailedSchedule(id: String, vessel: VesselId, requirements: Seq[Requirement])
+  case class DetailedSchedule(id: String , vessel: VesselId, requirements: Seq[Requirement])
 
-  implicit val StateType = deriveObjectType[Any, State]()
-  implicit val ActionType = deriveObjectType[Any, Action]()
-  implicit val RequirementType = deriveObjectType[Any, Requirement]()
-  implicit val DetailedScheduleType = deriveObjectType[Any, DetailedSchedule]()
+  implicit val StateType = deriveObjectType[Any, State](
+    ReplaceField("id", Field("id", IDType, resolve = _.value.id))
+  )
+  implicit val ActionType = deriveObjectType[Any, Action](
+     ReplaceField("id", Field("id", IDType, resolve = _.value.id))
+  )
+  implicit val RequirementType = deriveObjectType[Any, Requirement](
+     ReplaceField("id", Field("id", IDType, resolve = _.value.id))
+  )
+  implicit val DetailedScheduleType = deriveObjectType[Any, DetailedSchedule](
+     ReplaceField("id", Field("id", IDType, resolve = _.value.id))
+  )
 }

@@ -122,8 +122,8 @@ query {
       }]
     requirements: [
       {id: "CIT20191250", cleanStatus: "c", 
-        longs: [{ product: "dyed gas oil", quantity: 47696.1885, location: "SAYNB", valid: {id:"CIT20191250",startDate: "2019-12-18T00:00:00.000Z", endDate: "2019-12-19T23:59:59.000Z" } }] 
-        shorts: [{ product: "dyed gas oil", quantity: 47696.1885, location: "SAGIZ", valid: {id:"CIT20191250", startDate: "2019-12-22T00:00:00.000Z", endDate: "2019-12-23T23:59:59.000Z" } }], 
+        longs: [{id: "CIT20191250", product: "dyed gas oil", quantity: 47696.1885, location: "SAYNB", valid: {id:"CIT20191250",startDate: "2019-12-18T00:00:00.000Z", endDate: "2019-12-19T23:59:59.000Z" } }] 
+        shorts: [{ id:"CIT20191250",product: "dyed gas oil", quantity: 47696.1885, location: "SAGIZ", valid: {id:"CIT20191250", startDate: "2019-12-22T00:00:00.000Z", endDate: "2019-12-23T23:59:59.000Z" } }], 
         
       }
      
@@ -224,8 +224,8 @@ query detailedSchedules {
     }]
     requirements: [
       {id: "CIT20191250", cleanStatus: "c", 
-        longs: [{ product: "dyed gas oil", quantity: 47696.1885, location: "SAYNB", valid: {id:"CIT20191250", startDate: "2019-12-18T00:00:00.000Z", endDate: "2019-12-19T23:59:59.000Z" } }] 
-        shorts: [{ product: "dyed gas oil", quantity: 47696.1885, location: "SAJED", valid: {id: "CIT20191250",startDate: "2019-12-22T00:00:00.000Z", endDate: "2019-12-23T23:59:59.000Z" } }],   
+        longs: [{id:"CIT20191250", product: "dyed gas oil", quantity: 47696.1885, location: "SAYNB", valid: {id:"CIT20191250", startDate: "2019-12-18T00:00:00.000Z", endDate: "2019-12-19T23:59:59.000Z" } }] 
+        shorts: [{id: "CIT20191250", product: "dyed gas oil", quantity: 47696.1885, location: "SAJED", valid: {id: "CIT20191250",startDate: "2019-12-22T00:00:00.000Z", endDate: "2019-12-23T23:59:59.000Z" } }],   
       }
     ]
 		

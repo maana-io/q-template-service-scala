@@ -1,5 +1,5 @@
 
-version := sys.env.getOrElse("BUILD_VERSION", "v1.0.0")
+version := sys.env.getOrElse("BUILD_VERSION", "v1.0.3")
 
 name := sys.env.getOrElse("NAME", "maana_fast_scheduler")
 

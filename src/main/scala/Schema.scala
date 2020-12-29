@@ -9,6 +9,7 @@ import sangria.execution.UserFacingError
 import sangria.marshalling.{DateSupport, FromInput}
 import java.util.concurrent.{ConcurrentHashMap, Executors}
 
+
 import io.circe.generic.auto._
 import io.circe.syntax._
 
@@ -50,6 +51,7 @@ object Schema {
   val DryRate = 0
   val ColdRate = 1
   val HotRate = 2
+
 
 
   //types (these are used by QueryInput.scala at the moment)
