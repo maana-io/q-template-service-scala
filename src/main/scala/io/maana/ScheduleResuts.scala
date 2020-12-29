@@ -3,9 +3,8 @@ package io.maana
 import io.maana.Schema.{PortId, VesselId}
 import io.maana.{Schedule => Calculated}
 import org.joda.time.DateTime
-import sangria.schema.{Field, ListType, ObjectType}
 import sangria.macros.derive._
-import sangria.schema._
+import sangria.schema.{Field, ListType, ObjectType, _}
 import Scalars._
 import io.circe.generic.auto._
 import io.circe.syntax._

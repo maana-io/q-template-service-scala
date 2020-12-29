@@ -1,10 +1,6 @@
 package io.maana.common
 
-import java.util.concurrent.TimeUnit
-
 import com.typesafe.config.ConfigFactory
-
-import scala.concurrent.duration.FiniteDuration
 
 object Configuration {
   private val typesafeConfig = ConfigFactory.load()

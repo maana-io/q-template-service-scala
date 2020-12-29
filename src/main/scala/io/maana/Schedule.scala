@@ -1,19 +1,15 @@
 package io.maana
 
-import io.maana.Queries.Contract
-
-import scala.language.implicitConversions
-import scala.collection.JavaConverters._
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
+import io.maana.QueryInputs.Constants
 import io.maana.Schema.{DateRange, UnavailableTime}
-import io.maana.QueryInputs.{Constants}
+import io.maana.Server.Client.client
 import sangria.execution.UserFacingError
 
-import scala.annotation.tailrec
+import scala.collection.JavaConverters._
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.io.Source
-
-import Server.Client.client
+import scala.language.implicitConversions
 
 // TODO vessel unavailable time.
 // TODO past due locked requirements

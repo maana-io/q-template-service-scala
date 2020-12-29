@@ -1,4 +1,4 @@
-package io.maana
+package io.maana.http
 
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.headers._

@@ -1,6 +1,6 @@
 package io.maana
 
-import io.maana.Schema.{DateRange, PortId, TerminalId, VesselId}
+import io.maana.Schema.{PortId, TerminalId, VesselId}
 import org.joda.time.DateTime
 import sangria.macros.derive._
 import sangria.schema._

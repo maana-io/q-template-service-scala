@@ -2,10 +2,10 @@ package io.maana
 
 import io.circe.CursorOp.MoveRight
 import io.circe.{Decoder, DecodingFailure, HCursor}
+import org.joda.time._
 import org.joda.time.format.ISODateTimeFormat
 import sangria.marshalling.DateSupport
 import sangria.schema.ScalarType
-import org.joda.time._
 import sangria.validation.ValueCoercionViolation
 
 import scala.util.{Failure, Success, Try}

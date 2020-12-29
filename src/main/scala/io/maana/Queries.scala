@@ -1,29 +1,22 @@
 package io.maana
 
-import akka.http.scaladsl.model._
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.headers.OAuth2BearerToken
-import akka.http.scaladsl.model.{HttpEntity, HttpHeader, HttpRequest, StatusCodes}
-import io.circe.Decoder
-import io.circe.generic.auto._
-
-import scala.concurrent.{Await, ExecutionContext, Future}
+import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.model.MediaTypes._
+import akka.http.scaladsl.model.{HttpEntity, HttpRequest, StatusCodes, _}
+import akka.stream.scaladsl.{Flow, Sink, Source}
+import com.typesafe.config.ConfigFactory
 import io.circe.Json
 import io.circe.generic.auto._
-import io.circe._
 import io.circe.parser._
-import HttpMethods._
-import MediaTypes._
-import akka.stream.scaladsl.{Flow, Sink, Source}
 import sangria.validation.ValueCoercionViolation
-import com.typesafe.config.ConfigFactory
+
+import scala.concurrent.{ExecutionContext, Future}
 
 //Graphql client imports
 import com.github.jarlakxen.drunk._
-import io.circe._, io.circe.generic.semiauto._
+import io.circe._
 import sangria.macros._
-
-import Server.Client.client
 
 // TODO report query errors out to client
 // TODO move to Fanar Logic service endpoint
@@ -328,8 +321,8 @@ object Queries {
     val q: GraphQLCursor[AllPortsFromCacheResult, Nothing]     = client.query[AllPortsFromCacheResult](portsQuery)
     val data: Future[GraphQLResponse[AllPortsFromCacheResult]] = q.result
     data.map {
-      case Left(value) =>
-        throw (new Exception(s"Couldn't get data "))
+      case Left(error) =>
+        throw new Exception(s"Couldn't get data, error: $error")
       case Right(value) =>
         //println(value)
         value.data.allPortsFromCache.map(
@@ -410,8 +403,8 @@ object Queries {
       //val q = client.query[DistanceResult][DistanceInput](distanceQuery, DistanceInput(originPort = from, destinationPort = to, antiPiracy = antiPiracy, eca = eca))
       //val data: Future[GraphQLResponse[DistanceResult][DistanceInput]] = q.result
       data.map {
-        case Left(value) =>
-          throw (new Exception(s"Couldn't get data "))
+        case Left(error) =>
+          throw new Exception(s"Couldn't get data, error: $error")
         case Right(value) =>
           value.data.getPortToPortDistance
       }

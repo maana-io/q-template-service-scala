@@ -1,15 +1,12 @@
 package io.maana
 
-import scala.language.postfixOps
-import io.maana.Queries.VesselDimensions
-import io.maana.Schema.{Port, PortMap, SchemaError}
-import scala.annotation.tailrec
-import scala.language.implicitConversions
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration._
 import com.github.jarlakxen.drunk.GraphQLClient
+import io.maana.Schema.{Port, PortMap, SchemaError}
+import io.maana.Server.Client.client
 
-import Server.Client.client
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.language.{implicitConversions, postfixOps}
 
 //only deals with ports and distances
 object Shared {
@@ -37,7 +34,7 @@ object Shared {
 
   def AwaitWithRetry[T](in: Future[T], fn: => Unit, retries: Int = 3): T =
     if (retries == 0) {
-      throw SchemaError("Failed: Inetrnal Error - Could not read data from servers")
+      throw SchemaError("Failed: Internal Error - Could not read data from servers")
     } else {
       try {
         Await.result(in, 100.seconds)
@@ -58,7 +55,7 @@ object Shared {
       }
     }
 
-  var portMapF: java.util.concurrent.atomic.AtomicReference[Future[PortMap]] =
+  val portMapF: java.util.concurrent.atomic.AtomicReference[Future[PortMap]] =
     new java.util.concurrent.atomic.AtomicReference(null)
   def portMap: PortMap = AwaitWithRetry(portMapF.get, getPorts(client))
 

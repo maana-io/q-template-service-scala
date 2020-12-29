@@ -1,16 +1,15 @@
 package io.maana
 
-import java.util.TimeZone
-
-import scala.language.implicitConversions
+import io.circe.generic.auto._
+import io.circe.syntax._
+import sangria.execution.UserFacingError
 import sangria.macros.derive._
 import sangria.schema._
 import sangria.execution.UserFacingError
 import sangria.marshalling.{DateSupport, FromInput}
 import java.util.concurrent.{ConcurrentHashMap, Executors}
 
-import io.circe.generic.auto._
-import io.circe.syntax._
+import scala.language.implicitConversions
 
 //need to figure out what this is for.  looks like to do with cleaning time but we dont use that right now
 import io.maana.Queries.productMappings
@@ -19,6 +18,9 @@ import sangria.marshalling.circe._
 
 // These really are required -- Intellij just can't establish that
 import com.typesafe.config.ConfigFactory
+import io.maana.QueryInputs._
+import io.maana.Scalars._
+import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -26,11 +28,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration._
-import Scalars._ // Required for DateTime Scalar
-import QueryInputs._
-import org.joda.time.DateTime
-
-import Server.Client.client
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 object Schema {
   case class SchemaError(msg: String) extends Error(msg) with UserFacingError

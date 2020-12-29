@@ -1,31 +1,28 @@
 package io.maana
 
-import sangria.ast.Document
-import sangria.execution.deferred.DeferredResolver
-import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
-import sangria.parser.{QueryParser, SyntaxError}
-import sangria.parser.DeliveryScheme.Try
-import sangria.marshalling.circe._
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.MediaTypes._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.model.MediaTypes._
 import akka.http.scaladsl.server._
 import akka.stream.ActorMaterializer
 import de.heikoseeberger.akkahttpcirce.ErrorAccumulatingCirceSupport._
 import io.circe._
 import io.circe.optics.JsonPath._
 import io.circe.parser._
+import io.maana.http.GraphQLRequestUnmarshaller._
+import io.maana.common.MaanaClient
+import io.maana.http.CorsSupport
+import sangria.ast.Document
+import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
+import sangria.marshalling.circe._
+import sangria.parser.DeliveryScheme.Try
+import sangria.parser.{QueryParser, SyntaxError}
+import sangria.slowlog.SlowLog
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
-import GraphQLRequestUnmarshaller._
-import sangria.slowlog.SlowLog
-
-import scala.io.Source
-
-import io.maana.common.MaanaClient
 
 object Server extends App with CorsSupport {
   implicit val system       = ActorSystem("sangria-server")
