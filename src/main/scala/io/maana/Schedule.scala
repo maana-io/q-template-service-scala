@@ -361,7 +361,7 @@ object Schedule {
   // - If vessel is ballast or laden
   // - If the product is clean/dirty
   def calculateSuezCost(scnt: Double, ballast: Boolean, productType: String): Double = {
-    println(s"calculating suez cost for scnt: ${scnt}, clean status: ${productType}, ballast?: ${ballast}")
+    println(s"calculating suez cost for scnt: $scnt, clean status: $productType, ballast?: $ballast")
     // Price (in SDR) per SCNT for the first 5k, next 5k, next 10k, ... 20k, 30k, 50k, remaining.
     // SDR is special drawing rights, and is what the suez canal calculates rates in.
     val suezRatesPerSCNT =
@@ -381,13 +381,12 @@ object Schedule {
     val suezCost = quantities
       .zip(suezRatesPerSCNT)
       .foldLeft((0.0, scnt))({
-        case ((totalCost, scntRemaining), (curScnt, curCost)) => {
+        case ((totalCost, scntRemaining), (curScnt, curCost)) =>
           if (scntRemaining < curScnt) {
             (totalCost + (curCost * scntRemaining * sdrToUsdRate), 0.0)
           } else {
             (totalCost + (curCost * curScnt * sdrToUsdRate), scntRemaining - curScnt)
           }
-        }
       })
     suezCost._1
   }
@@ -425,11 +424,11 @@ object Schedule {
       }
     }
 
-    val suezCost = distance.suezRoute match {
-      case true =>
-        println(s"calculating suez cost for vessel: ${vessel.name}");
-        calculateSuezCost(vessel.scnt, ballast, vessel.cleanStatus)
-      case false => 0.0
+    val suezCost = if (distance.suezRoute) {
+      println(s"calculating suez cost for vessel: ${vessel.name}");
+      calculateSuezCost(vessel.scnt, ballast, vessel.cleanStatus)
+    } else {
+      0.0
     }
 
     val fuelConsumedPerDay = bunkerRequirements(Math.ceil(speed * 2).toInt)
@@ -1092,7 +1091,7 @@ object Schedule {
     in.map(r => r.requirement.originalRequirement.id)
 
   def printScheduleRequirementIds(in: Seq[AnnotatedRequirement]): Unit = {
-    val strs = in.map(r => s""""${r.requirement.originalRequirement.id.toString}"""").mkString(",")
+    val strs = in.map(r => s""""${r.requirement.originalRequirement.id}"""").mkString(",")
     println(s"[$strs]")
   }
 

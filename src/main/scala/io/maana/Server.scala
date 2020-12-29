@@ -143,6 +143,6 @@ object Server extends App with CorsSupport {
   Shared.init(Client.client)
 
   val port = sys.props.get("http.port").fold(8080)(_.toInt)
-  println(s"Server listening on 0.0.0.0:${port}")
+  println(s"Server listening on 0.0.0.0:$port")
   Http().bindAndHandle(corsHandler(route), "0.0.0.0", port)
 }

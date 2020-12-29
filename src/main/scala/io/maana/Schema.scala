@@ -41,7 +41,7 @@ object Schema {
     new java.util.concurrent.ConcurrentHashMap[(String, String), Future[Queries.PortDistance]].asScala
 
   val dateFormatString              = "MM/dd/yy"
-  val vesselVolumeCapacityTolerance = 1.1;
+  val vesselVolumeCapacityTolerance = 1.1
   val maxBeamTolerance              = 1.01
   val cleanStatusAny                = "d/c"
 
@@ -204,7 +204,7 @@ object Schema {
         in =>
           in.portId match {
             case Some(y) => true
-            case None    => false
+            case None => false
           }
       )
       .map { in =>
@@ -213,8 +213,9 @@ object Schema {
         )
       }
       .groupBy(_._1)
-      .map(a => a._1 -> a._2.map { _._2 })
-      .toMap
+      .map(a => a._1 -> a._2.map {
+        _._2
+      })
 
   def toTerminalRestrictions(portRestrictions: Seq[QueryInputs.PortRestriction]): TerminalIncompatibilityMap =
     portRestrictions
@@ -222,7 +223,7 @@ object Schema {
         in =>
           in.terminalId match {
             case Some(y) => true
-            case None    => false
+            case None => false
           }
       )
       .map { in =>
@@ -231,8 +232,9 @@ object Schema {
         )
       }
       .groupBy(_._1)
-      .map(a => a._1 -> a._2.map { _._2 })
-      .toMap
+      .map(a => a._1 -> a._2.map {
+        _._2
+      })
 
   // result is a set of ordered discontinuous Date Ranges
   def combineRanges(in: Seq[UnavailableTime]): Seq[UnavailableTime] = in match {
@@ -259,7 +261,7 @@ object Schema {
     case "m^3/h"  => value / 3600.0
     case "m^3/hr" => value / 3600.0
     case foo =>
-      println(s"Unit = ${foo}")
+      println(s"Unit = $foo")
       ???
   }
 
@@ -301,8 +303,8 @@ object Schema {
         case None    => now
       }
       // if we can't meet the first constraint
-      val startIsLate = r.longs.headOption.map(_.valid.startDate < scheduleStartDate).getOrElse(false)
-      val endIsLate   = r.longs.headOption.map(_.valid.endDate < scheduleStartDate).getOrElse(false)
+      val startIsLate = r.longs.headOption.exists(_.valid.startDate < scheduleStartDate)
+      val endIsLate   = r.longs.headOption.exists(_.valid.endDate < scheduleStartDate)
       if (endIsLate) {
         val leeway = 5 * Schedule.secondsPerDay.toLong
         println(s"Adjusting requirement to start after start $r")
@@ -454,7 +456,7 @@ object Schema {
                 d.toDate.getTime / 1000
               }
               .getOrElse {
-                println(s"WARNING - Could not parse contract Date ${in.vessel.details.contractExpiration}");
+                println(s"WARNING - Could not parse contract Date ${in.vessel.details.contractExpiration}")
                 Long.MaxValue
               }
           )
@@ -569,7 +571,7 @@ object Schema {
                 d.toDate.getTime / 1000
               }
               .getOrElse {
-                println(s"WARNING - Could not parse contract Date ${in.vessel.details.contractExpiration}");
+                println(s"WARNING - Could not parse contract Date ${in.vessel.details.contractExpiration}")
                 Long.MaxValue
               }
           )
@@ -639,10 +641,9 @@ object Schema {
         invalidRanges.forall(r => !action.valid.overlaps(r.dateRange))
       } && {
         action.terminalId match {
-          case Some(a) => {
+          case Some(a) =>
             val invalidTerminalRanges = terminalIncompatibilities.getOrElse(a, Vector.empty)
             invalidTerminalRanges.forall(r => !action.valid.overlaps(r.dateRange))
-          }
           case None => true
         }
       }

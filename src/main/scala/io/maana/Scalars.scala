@@ -19,15 +19,13 @@ object Scalars {
   }
 
   // Need explicit Json decoder for input objects -- Thanks Sangria
-  implicit val decodeDateTime: Decoder[DateTime] = new Decoder[DateTime] {
-    final def apply(c: HCursor): Decoder.Result[DateTime] = {
-      val out = for {
-        str <- c.value.as[String]
-        date <- parseDate(str).left
-                 .map(_ => DecodingFailure(s"invalid Date - $str", List(MoveRight))): Decoder.Result[DateTime]
-      } yield date
-      out
-    }
+  implicit val decodeDateTime: Decoder[DateTime] = (c: HCursor) => {
+    val out = for {
+      str <- c.value.as[String]
+      date <- parseDate(str).left
+        .map(_ => DecodingFailure(s"invalid Date - $str", List(MoveRight))): Decoder.Result[DateTime]
+    } yield date
+    out
   }
 
   implicit val DateTimeType = ScalarType[DateTime](

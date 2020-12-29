@@ -256,7 +256,7 @@ object Queries {
           }
         case HttpResponse(status, _, res, _) =>
           res.httpEntity.dataBytes.map { b =>
-            throw (new Exception(s"Couldn't get data - $status - ${b.utf8String}"))
+            throw new Exception(s"Couldn't get data - $status - ${b.utf8String}")
           }
       }
       .flatMap { out =>
@@ -287,7 +287,7 @@ object Queries {
     case "m3"  => value
     case "m^3" => value
     case foo =>
-      println(s"Unit = ${foo}")
+      println(s"Unit = $foo")
       ???
   }
 
@@ -295,7 +295,7 @@ object Queries {
     case "m^3/h"  => value / 3600.0
     case "m^3/hr" => value / 3600.0
     case foo =>
-      println(s"Unit = ${foo}")
+      println(s"Unit = $foo")
       ???
   }
 
@@ -336,9 +336,7 @@ object Queries {
               longitude = p.location.longitude,
               //berths needs mapping
               //terminals
-              berths = p.terminals
-                .map(t => t.berths)
-                .flatten
+              berths = p.terminals.flatMap(t => t.berths)
                 .map { b =>
                   Schema.Berth(
                     id = b.id,

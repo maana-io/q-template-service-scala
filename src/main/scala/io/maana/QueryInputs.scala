@@ -289,7 +289,7 @@ object QueryInputs {
       }
       .mkString(", ")
 
-    println(s"""{id: "${r.id}", shorts: [${shortsStr}], longs: [${longsStr}], cleanStatus:"${r.cleanStatus}" }""")
+    println(s"""{id: "${r.id}", shorts: [$shortsStr], longs: [$longsStr], cleanStatus:"${r.cleanStatus}" }""")
 
   }
 
