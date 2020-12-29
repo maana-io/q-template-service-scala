@@ -54,10 +54,11 @@ object ScheduleResults {
 
 
   // Used by the Detailed Schedule Endpoint
+  // add Id's to these types for Q
   case class Requirement(id: String, cost: Double, actions: Seq[Action])
-  case class State (endsAt: DateTime, fuelRemaining: Double, lastProduct: String, location: PortId)
-  case class Action (`type`: String, cost: Double, speed: Double, startsAt: DateTime, endState: State)
-  case class DetailedSchedule(vessel: VesselId, requirements: Seq[Requirement])
+  case class State (id: String, endsAt: DateTime, fuelRemaining: Double, lastProduct: String, location: PortId)
+  case class Action (id: String, `type`: String, cost: Double, speed: Double, startsAt: DateTime, endState: State)
+  case class DetailedSchedule(id: String, vessel: VesselId, requirements: Seq[Requirement])
 
   implicit val StateType = deriveObjectType[Any, State]()
   implicit val ActionType = deriveObjectType[Any, Action]()

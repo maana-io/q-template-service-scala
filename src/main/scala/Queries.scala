@@ -369,9 +369,6 @@ object Queries {
     
   }
 
-
-  case class DistanceRequest(from: String, to: String)
-
   def distance(client: GraphQLClient, from: String, to: String): Future[PortDistance] = {
     if (from == to) {
       Future.successful(PortDistance(value = 0.0, suezRoute = false))
@@ -402,13 +399,7 @@ object Queries {
     }
   }
 
-  /*def distances(reqs: Seq[DistanceRequest]): Future[Seq[PortDistance]] = {
-    val queries = reqs.map { r =>
-      distance(r.from, r.to)
-      
-    }
-    Future.sequence(queries)
-  }*/
+
 
 
 

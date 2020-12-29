@@ -3,7 +3,7 @@ version := sys.env.getOrElse("BUILD_VERSION", "v1.0.0")
 
 name := sys.env.getOrElse("NAME", "maana_fast_scheduler")
 
-packageName in Docker := sys.env.getOrElse("PACKAGE_NAME", "maana_fast_scheduler")
+packageName in Docker := sys.env.getOrElse("PACKAGE_NAME", "fanarcr.azurecr.io/maana_fast_scheduler")
   
 description := "Maana's Shipping Fast Scheduler Service"
 

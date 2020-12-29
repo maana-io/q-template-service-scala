@@ -31,9 +31,9 @@ object QueryInputs {
   }
 
   // Vessel dimensions are cached
-  case class DateRangeInput(startDate: DateTime, endDate: DateTime)
+  case class DateRangeInput(id: String, startDate: DateTime, endDate: DateTime)
   // doesn't embed date range to make it compatible with the old interface
-  case class UnavailableTime(dateRange: DateRangeInput, startPort: Option[PortId], endPort: Option[PortId])
+  case class UnavailableTime(id: String, dateRange: DateRangeInput, startPort: Option[PortId], endPort: Option[PortId])
 
   @GraphQLDescription("""Vessels Dimensions """")
   case class VesselDimensions(id: String, beam: Double, overallLength: Double, aftParallelBodyDistance: Double, forwardParallelBodyDistance: Double)
@@ -96,6 +96,7 @@ object QueryInputs {
 
   @GraphQLDescription("""Vessel cannot enter the specified port or terminal (only specify one or the other) during the restricted date range""")
   case class PortRestriction(portId: Option[PortId], terminalId: Option[TerminalId], dateRange: DateRangeInput, reason: Option[String])
+
   @GraphQLDescription("""Initial state of the vessel and at what point it becomes free for scheduling. Passing empty string as the lastProduct stops cleaning being scheduled for the first requirement. product can be specified as either an aramco product or a BP product""")
   case class VesselInput(id: VesselId, 
                          name: String,
@@ -137,6 +138,7 @@ object QueryInputs {
 
   @GraphQLDescription("""Used for both Longs and Shorts. Product can be specified as either an aramco product or a BP product""")
   case class VesselActionInput(product: String, quantity: Double, valid: DateRangeInput, location: PortId, terminal: Option[TerminalId])
+  
   @GraphQLDescription("""Requirement to be scheduled, requirements locked to vessels specify the ID of the vessel they are locked to. This list should contain only requirements that should be scheduled, i.e. omit requirements completed or in process.""")
   case class RequirementInput(id: String, 
       shorts: Seq[VesselActionInput], 
@@ -148,19 +150,16 @@ object QueryInputs {
 
   @GraphQLDescription(""" Constants used for optimization""")
   case class Constants(
+      id: String,
       defaultFuelPrice: Int, 
       defaultDieselPrice: Int,
       refuelThreshold: Int,
       criticalRefuelThreshold: Int,
       operationalOverhead: Int)
 
-  // example configuration for inputs to resolvers
-  type Name = String
-  @GraphQLDescription("""Name Input""")
-  case class NameInput(name: Option[Name])
+
 
   // sangira stuff that builds the schema
-  implicit val NameInputType = deriveInputObjectType[NameInput]()
   implicit val DateRangeInputType = deriveInputObjectType[DateRangeInput]()
   implicit val VesselDimensionType = deriveInputObjectType[VesselDimensions]()
   implicit val SpeedCapabilitiesType = deriveInputObjectType[SpeedCapabilities]()

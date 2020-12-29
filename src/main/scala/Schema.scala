@@ -602,23 +602,6 @@ object Schema {
   //Queries
   trait Query {
 
-     @GraphQLDescription(
-      """test resolver
-        name is a NameInput object {name: String}
-        |""".stripMargin)
-      @GraphQLField
-      def test(name: NameInput): String = Profile.prof("Query: name"){
-        //this also works when name field on NameInput is Option
-        val res = name.name match {
-          case Some(s) => "yes"
-          case None => "not there"
-        }
-        //val res = show(name)
-          //this works
-        //val res = "hello " + name.getOrElse(0)
-        res
-      }
-
       @GraphQLDescription(
         """
         Main Entrypoint for schedule creation, returns a JSON String.
