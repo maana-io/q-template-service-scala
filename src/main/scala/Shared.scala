@@ -2,7 +2,7 @@ package io.maana
 
 import scala.language.postfixOps
 import io.maana.Queries.VesselDimensions
-import io.maana.Schema.{Port, PortMap, SchemaError }
+import io.maana.Schema.{Port, PortMap, SchemaError}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -11,63 +11,58 @@ import com.github.jarlakxen.drunk.GraphQLClient
 
 import Server.Client.client
 
-
-//only deals with ports and distances 
+//only deals with ports and distances
 object Shared {
   val portsToCache = 10
 
   implicit val executionContext = Schema.executionContext
 
-
   // not a distance at all, just some measure of closeness for sorting ports
-  def veryApproximateDistanceSQNoUnits(from: (Double, Double), to: (Double, Double)) : Double = {
+  def veryApproximateDistanceSQNoUnits(from: (Double, Double), to: (Double, Double)): Double = {
     val dLat = to._1 - from._1
     val dLon = to._2 - from._2
-    dLat*dLat * dLon*dLon
+    dLat * dLat * dLon * dLon
   }
 
-  def GCDistanceNM(from: (Double, Double), to: (Double, Double)) : Double = {
+  def GCDistanceNM(from: (Double, Double), to: (Double, Double)): Double = {
     val AVERAGE_RADIUS_OF_EARTH_NM = 3440
-    val latDistance = Math.toRadians(from._1 - to._1)
-    val lngDistance = Math.toRadians(from._2 - to._2)
-    val sinLat = Math.sin(latDistance / 2)
-    val sinLng = Math.sin(lngDistance / 2)
-    val a = sinLat * sinLat + (Math.cos(Math.toRadians(from._1)) * Math.cos(Math.toRadians(to._1))  * sinLng * sinLng)
-    val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    val latDistance                = Math.toRadians(from._1 - to._1)
+    val lngDistance                = Math.toRadians(from._2 - to._2)
+    val sinLat                     = Math.sin(latDistance / 2)
+    val sinLng                     = Math.sin(lngDistance / 2)
+    val a                          = sinLat * sinLat + (Math.cos(Math.toRadians(from._1)) * Math.cos(Math.toRadians(to._1)) * sinLng * sinLng)
+    val c                          = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     AVERAGE_RADIUS_OF_EARTH_NM * c
   }
 
-
-
-
-  def AwaitWithRetry[T](in: Future[T], fn: => Unit , retries: Int = 3): T = {
+  def AwaitWithRetry[T](in: Future[T], fn: => Unit, retries: Int = 3): T =
     if (retries == 0) {
       throw SchemaError("Failed: Inetrnal Error - Could not read data from servers")
     } else {
       try {
         Await.result(in, 100.seconds)
-      } catch { case e: Throwable => synchronized{
-        try  {
-          // Could have been done on another thread
-          Await.result(in, 100.seconds)
-        } catch { case e: Throwable =>
-          println(s"WARNING - query failed - $e - retrying in 1s")
-          Thread.sleep(1000)
-          fn
-          AwaitWithRetry(in, fn, retries - 1)
-        }
-      }}
+      } catch {
+        case e: Throwable =>
+          synchronized {
+            try {
+              // Could have been done on another thread
+              Await.result(in, 100.seconds)
+            } catch {
+              case e: Throwable =>
+                println(s"WARNING - query failed - $e - retrying in 1s")
+                Thread.sleep(1000)
+                fn
+                AwaitWithRetry(in, fn, retries - 1)
+            }
+          }
+      }
     }
 
-  }
-
-  var portMapF : java.util.concurrent.atomic.AtomicReference[Future[PortMap]] = new java.util.concurrent.atomic.AtomicReference(null)
-  def portMap : PortMap =  AwaitWithRetry(portMapF.get, getPorts(client))
-
+  var portMapF: java.util.concurrent.atomic.AtomicReference[Future[PortMap]] =
+    new java.util.concurrent.atomic.AtomicReference(null)
+  def portMap: PortMap = AwaitWithRetry(portMapF.get, getPorts(client))
 
 //  def getContracts: Unit =
-
-
 
   def getPorts(client: GraphQLClient): Unit = {
     // Ports
@@ -83,7 +78,8 @@ object Shared {
             .sortBy { p1 =>
               val l1 = (p1.latitude, p1.longitude)
               GCDistanceNM(l0, l1)
-            }.take(portsToCache)
+            }
+            .take(portsToCache)
 
           p.copy(neighbors = neighbors)
         } else {
@@ -95,9 +91,8 @@ object Shared {
     }
 
     val f = portsS.map { ports =>
-      
       ports.map { p =>
-      println(p.id)
+        println(p.id)
         p.id -> p
       }.toMap
     }
@@ -105,28 +100,23 @@ object Shared {
     portMapF.set(f)
   }
 
-
-
-
-
   def reloadCaches(client: GraphQLClient): Unit = synchronized {
-    
+
     getPorts(client)
   }
 
-
-
-
   val cacheCheckThread = new Runnable {
-    def run() = while(true) {
+
+    def run() = while (true) {
 
       // Check the cached result is valid every 10s
       // println(s"Checking cache")
       // ensure the existing requests are valid and re-request if they fail
       try {
         portMap
-      } catch { case e : Throwable =>
-        println(s"Failed to get valid port data: $e")
+      } catch {
+        case e: Throwable =>
+          println(s"Failed to get valid port data: $e")
 
       }
 
@@ -134,7 +124,7 @@ object Shared {
     }
   }
 
-  def init(client: GraphQLClient): Unit = Profile.prof("Shared: init"){
+  def init(client: GraphQLClient): Unit = Profile.prof("Shared: init") {
     println("Reading static data")
 
     reloadCaches(client)
@@ -144,10 +134,11 @@ object Shared {
 //    Must get results to continue
 //      Await.result(portMapF.zip(vesselDimensionMapF), 100.seconds)
       println("Ports  requested")
-    } catch {case e : Throwable=>
-      println(s"ERROR  - $e \nFailed to fetch preloaded data exiting in 10s docker will restart.")
-      Thread.sleep(10000)
-      System.exit(-1)
+    } catch {
+      case e: Throwable =>
+        println(s"ERROR  - $e \nFailed to fetch preloaded data exiting in 10s docker will restart.")
+        Thread.sleep(10000)
+        System.exit(-1)
     }
 
     executionContext.execute(cacheCheckThread)

@@ -7,9 +7,9 @@ import com.typesafe.config.ConfigFactory
 import scala.concurrent.duration.FiniteDuration
 
 object Configuration {
-  private val typesafeConfig  = ConfigFactory.load()
+  private val typesafeConfig = ConfigFactory.load()
 
-  val MAANA_CLIENT_ENDPOINT   = typesafeConfig.getString("app.maanaClientEndpoint")
+  val MAANA_CLIENT_ENDPOINT = typesafeConfig.getString("app.maanaClientEndpoint")
 
   // Auth
   val AUTH_IDENTIFIER    = typesafeConfig.getString("app.authIdentifier")

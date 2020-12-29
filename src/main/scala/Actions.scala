@@ -1,5 +1,3 @@
 package io.maana
 
-object Actions {
-
-}
+object Actions {}

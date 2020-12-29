@@ -28,7 +28,7 @@ import scala.io.Source
 import io.maana.common.MaanaClient
 
 object Server extends App with CorsSupport {
-  implicit val system = ActorSystem("sangria-server")
+  implicit val system       = ActorSystem("sangria-server")
   implicit val materializer = ActorMaterializer()
   // All times are UTC
   java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"))
@@ -36,26 +36,39 @@ object Server extends App with CorsSupport {
   import system.dispatcher
 
   def executeGraphQL(query: Document, operationName: Option[String], variables: Json, tracing: Boolean) =
-    complete(Executor.execute(
-      schema = Schema.schema,
-      queryAst = query,
-      variables = if (variables.isNull) Json.obj() else variables,
-      operationName = operationName,
-      middleware = if (tracing) SlowLog.apolloTracing :: Nil else Nil)
+    complete(
+      Executor
+        .execute(
+          schema = Schema.schema,
+          queryAst = query,
+          variables = if (variables.isNull) Json.obj() else variables,
+          operationName = operationName,
+          middleware =
+            if (tracing) SlowLog.apolloTracing :: Nil
+            else Nil
+        )
         .map(OK → _)
         .recover {
-          case error: QueryAnalysisError ⇒ BadRequest → error.resolveError
-          case error: ErrorWithResolver ⇒ InternalServerError → error.resolveError
-        })
+          case error: QueryAnalysisError ⇒ BadRequest          → error.resolveError
+          case error: ErrorWithResolver  ⇒ InternalServerError → error.resolveError
+        }
+    )
 
   def formatError(error: Throwable): Json = error match {
     case syntaxError: SyntaxError ⇒
-      Json.obj("errors" → Json.arr(
       Json.obj(
-        "message" → Json.fromString(syntaxError.getMessage),
-        "locations" → Json.arr(Json.obj(
-          "line" → Json.fromBigInt(syntaxError.originalError.position.line),
-          "column" → Json.fromBigInt(syntaxError.originalError.position.column))))))
+        "errors" → Json.arr(
+          Json.obj(
+            "message" → Json.fromString(syntaxError.getMessage),
+            "locations" → Json.arr(
+              Json.obj(
+                "line"   → Json.fromBigInt(syntaxError.originalError.position.line),
+                "column" → Json.fromBigInt(syntaxError.originalError.position.column)
+              )
+            )
+          )
+        )
+      )
     case NonFatal(e) ⇒
       formatError(e.getMessage)
     case e ⇒
@@ -72,56 +85,61 @@ object Server extends App with CorsSupport {
           explicitlyAccepts(`text/html`) {
             getFromResource("assets/playground.html")
           } ~
-          parameters('query, 'operationName.?, 'variables.?) { (query, operationName, variables) ⇒
-            QueryParser.parse(query) match {
-              case Success(ast) ⇒
-                variables.map(parse) match {
-                  case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
-                  case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined)
-                  case None ⇒ executeGraphQL(ast, operationName, Json.obj(), tracing.isDefined)
-                }
-              case Failure(error) ⇒ complete(BadRequest, formatError(error))
-            }
-          }
-        } ~
-        post {
-          parameters('query.?, 'operationName.?, 'variables.?) { (queryParam, operationNameParam, variablesParam) ⇒
-            entity(as[Json]) { body ⇒
-              val query = queryParam orElse root.query.string.getOption(body)
-              val operationName = operationNameParam orElse root.operationName.string.getOption(body)
-              val variablesStr = variablesParam orElse root.variables.string.getOption(body)
-
-              query.map(QueryParser.parse(_)) match {
-                case Some(Success(ast)) ⇒
-                  variablesStr.map(parse) match {
+            parameters('query, 'operationName.?, 'variables.?) { (query, operationName, variables) ⇒
+              QueryParser.parse(query) match {
+                case Success(ast) ⇒
+                  variables.map(parse) match {
                     case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
                     case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined)
-                    case None ⇒ executeGraphQL(ast, operationName, root.variables.json.getOption(body) getOrElse Json.obj(), tracing.isDefined)
+                    case None              ⇒ executeGraphQL(ast, operationName, Json.obj(), tracing.isDefined)
                   }
-                case Some(Failure(error)) ⇒ complete(BadRequest, formatError(error))
-                case None ⇒ complete(BadRequest, formatError("No query to execute"))
-              }
-            } ~
-            entity(as[Document]) { document ⇒
-              variablesParam.map(parse) match {
-                case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
-                case Some(Right(json)) ⇒ executeGraphQL(document, operationNameParam, json, tracing.isDefined)
-                case None ⇒ executeGraphQL(document, operationNameParam, Json.obj(), tracing.isDefined)
+                case Failure(error) ⇒ complete(BadRequest, formatError(error))
               }
             }
+        } ~
+          post {
+            parameters('query.?, 'operationName.?, 'variables.?) { (queryParam, operationNameParam, variablesParam) ⇒
+              entity(as[Json]) { body ⇒
+                val query         = queryParam.orElse(root.query.string.getOption(body))
+                val operationName = operationNameParam.orElse(root.operationName.string.getOption(body))
+                val variablesStr  = variablesParam.orElse(root.variables.string.getOption(body))
+
+                query.map(QueryParser.parse(_)) match {
+                  case Some(Success(ast)) ⇒
+                    variablesStr.map(parse) match {
+                      case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
+                      case Some(Right(json)) ⇒ executeGraphQL(ast, operationName, json, tracing.isDefined)
+                      case None ⇒
+                        executeGraphQL(
+                          ast,
+                          operationName,
+                          root.variables.json.getOption(body).getOrElse(Json.obj()),
+                          tracing.isDefined
+                        )
+                    }
+                  case Some(Failure(error)) ⇒ complete(BadRequest, formatError(error))
+                  case None                 ⇒ complete(BadRequest, formatError("No query to execute"))
+                }
+              } ~
+                entity(as[Document]) { document ⇒
+                  variablesParam.map(parse) match {
+                    case Some(Left(error)) ⇒ complete(BadRequest, formatError(error))
+                    case Some(Right(json)) ⇒ executeGraphQL(document, operationNameParam, json, tracing.isDefined)
+                    case None              ⇒ executeGraphQL(document, operationNameParam, Json.obj(), tracing.isDefined)
+                  }
+                }
+            }
           }
-        }
       }
     } ~
-    (get & pathEndOrSingleSlash) {
-      redirect("/graphql", PermanentRedirect)
-    }
+      (get & pathEndOrSingleSlash) {
+        redirect("/graphql", PermanentRedirect)
+      }
 
   //build graphql client here?
   object Client {
     val client = MaanaClient().maanaClient
   }
- 
 
   // force initialization of one offs
   //this requires a connection to the ports service

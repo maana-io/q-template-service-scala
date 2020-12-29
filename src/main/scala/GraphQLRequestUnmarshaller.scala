@@ -30,7 +30,9 @@ object GraphQLRequestUnmarshaller {
   def mediaTypes: Seq[MediaType.WithFixedCharset] =
     List(`application/graphql`)
 
-  implicit final def documentMarshaller(implicit config: QueryRendererConfig = QueryRenderer.Compact): ToEntityMarshaller[Document] =
+  implicit final def documentMarshaller(
+      implicit config: QueryRendererConfig = QueryRenderer.Compact
+  ): ToEntityMarshaller[Document] =
     Marshaller.oneOf(mediaTypes: _*) { mediaType ⇒
       Marshaller.withFixedContentType(ContentType(mediaType)) { json ⇒
         HttpEntity(mediaType, QueryRenderer.render(json, config))

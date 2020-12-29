@@ -1,4 +1,3 @@
-
 package io.maana.common
 
 import akka.actor.ActorSystem
@@ -12,7 +11,6 @@ import io.circe.generic.semiauto.deriveDecoder
 import io.circe.parser.parse
 import sangria.execution.UserFacingError
 
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -23,6 +21,7 @@ class MaanaClient(implicit val system: ActorSystem, mat: ActorMaterializer) {
   case class AppError(msg: String) extends Error(msg) with UserFacingError
 
   private val logger = Logger(this.getClass)
+
   def maanaClient: GraphQLClient = {
     if (cachedMaanaClient.isEmpty && DateTime.now >= tokenExpirationTime) {
       val (client, auth) = rebuildMaanaClient
@@ -40,6 +39,7 @@ class MaanaClient(implicit val system: ActorSystem, mat: ActorMaterializer) {
 
     cachedMaanaClient.getOrElse(throw AppError("Can not obtain Maana GraphQL Client"))
   }
+
   def getAuthenticatedHeaders = {
     // This will ensure that we obtained fresh auth headers
     this.maanaClient
@@ -132,7 +132,3 @@ object MaanaClient {
 
   def get = cachedClient.get.maanaClient
 }
-
-  
-
-
