@@ -3,6 +3,7 @@ package io.maana
 import io.maana.QueryInputs.Constants
 import io.maana.Schema.{DateRange, UnavailableTime}
 import io.maana.Server.Client.client
+import io.maana.common.Logger
 import sangria.execution.UserFacingError
 
 import scala.collection.JavaConverters._
@@ -10,6 +11,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.language.implicitConversions
+import scala.util.Try
 
 // TODO vessel unavailable time.
 // TODO past due locked requirements
@@ -23,6 +25,7 @@ import scala.language.implicitConversions
 // TODO Change time granularity to hours
 
 object Schedule {
+  val logger = Logger(this.getClass)
 
   case class SchedulingError(msg: String) extends Error(msg) with UserFacingError
 
@@ -58,49 +61,64 @@ object Schedule {
   }
 
   // Load up the cleaning times data
-  val cleaningTimesSeconds = Source
-    .fromResource("BP_times.csv")
-    .getLines
-    .map { line =>
-      val split = line.split(",", 5)
-      val from  = split(1).toLowerCase
-      val to    = split(2).toLowerCase
-      val time  = split(3).toInt
-      val cold  = split(4).toLowerCase.contains("cold")
-      val hot   = split(4).toLowerCase.contains("hot")
-      val tpe   = if (cold) Schema.ColdRate else if (hot) Schema.HotRate else Schema.DryRate
-      (from, to) -> (time * secondsPerHour, tpe)
-    }
-    .toMap
+  val cleaningTimesSeconds = Try {
+    Source
+      .fromResource("data/BP_times.csv")
+      .getLines
+      .map { line =>
+        val split = line.split(",", 5)
+        val from = split(1).toLowerCase
+        val to = split(2).toLowerCase
+        val time = split(3).toInt
+        val cold = split(4).toLowerCase.contains("cold")
+        val hot = split(4).toLowerCase.contains("hot")
+        val tpe = if (cold) Schema.ColdRate else if (hot) Schema.HotRate else Schema.DryRate
+        (from, to) -> (time * secondsPerHour, tpe)
+      }
+      .toMap
+  }.getOrElse {
+    logger.error("File data/BP_times.csv is not found")
+    Map.empty[(String, String), (Double, Int)]
+  }
 
   // Load up the bunker consumption for cleaning data
-  val cleaningBunkerConsumptionsMr = Source
-    .fromResource("mr_cleaning_bunker_consumption.csv")
-    .getLines
-    .drop(1)
-    .map { line =>
-      val split  = line.split(",", 4)
-      val from   = split(0).toLowerCase
-      val to     = split(1).toLowerCase
-      val fuel   = split(2).toDouble
-      val diesel = split(3).toDouble
-      (from, to) -> (fuel, diesel)
-    }
-    .toMap
+  val cleaningBunkerConsumptionsMr = Try {
+    Source
+      .fromResource("data/mr_cleaning_bunker_consumption.csv")
+      .getLines
+      .drop(1)
+      .map { line =>
+        val split = line.split(",", 4)
+        val from = split(0).toLowerCase
+        val to = split(1).toLowerCase
+        val fuel = split(2).toDouble
+        val diesel = split(3).toDouble
+        (from, to) -> (fuel, diesel)
+      }
+      .toMap
+  }.getOrElse {
+    logger.error("File data/mr_cleaning_bunker_consumption.csv is not found")
+    Map.empty[(String, String), (Double, Double)]
+  }
 
-  val cleaningBunkerConsumptionsLr = Source
-    .fromResource("lr_cleaning_bunker_consumption.csv")
-    .getLines
-    .drop(1)
-    .map { line =>
-      val split  = line.split(",", 4)
-      val from   = split(0).toLowerCase
-      val to     = split(1).toLowerCase
-      val fuel   = split(2).toDouble
-      val diesel = split(3).toDouble
-      (from, to) -> (fuel, diesel)
-    }
-    .toMap
+  val cleaningBunkerConsumptionsLr = Try {
+    Source
+      .fromResource("data/lr_cleaning_bunker_consumption.csv")
+      .getLines
+      .drop(1)
+      .map { line =>
+        val split = line.split(",", 4)
+        val from = split(0).toLowerCase
+        val to = split(1).toLowerCase
+        val fuel = split(2).toDouble
+        val diesel = split(3).toDouble
+        (from, to) -> (fuel, diesel)
+      }
+      .toMap
+  }.getOrElse {
+    logger.error("File data/lr_cleaning_bunker_consumption.csv is not found")
+    Map.empty[(String, String), (Double, Double)]
+  }
 
   // Vessel Actions provide a mechanism to precompute costs in a vessel agnostic way
   // Vessels need to be provided to get an actual cost

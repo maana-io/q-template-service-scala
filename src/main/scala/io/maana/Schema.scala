@@ -204,7 +204,7 @@ object Schema {
         in =>
           in.portId match {
             case Some(y) => true
-            case None => false
+            case None    => false
           }
       )
       .map { in =>
@@ -213,9 +213,12 @@ object Schema {
         )
       }
       .groupBy(_._1)
-      .map(a => a._1 -> a._2.map {
-        _._2
-      })
+      .map(
+        a =>
+          a._1 -> a._2.map {
+            _._2
+          }
+      )
 
   def toTerminalRestrictions(portRestrictions: Seq[QueryInputs.PortRestriction]): TerminalIncompatibilityMap =
     portRestrictions
@@ -223,7 +226,7 @@ object Schema {
         in =>
           in.terminalId match {
             case Some(y) => true
-            case None => false
+            case None    => false
           }
       )
       .map { in =>
@@ -232,9 +235,7 @@ object Schema {
         )
       }
       .groupBy(_._1)
-      .map(a => a._1 -> a._2.map {
-        _._2
-      })
+      .map(a => a._1 -> a._2.map(_._2))
 
   // result is a set of ordered discontinuous Date Ranges
   def combineRanges(in: Seq[UnavailableTime]): Seq[UnavailableTime] = in match {

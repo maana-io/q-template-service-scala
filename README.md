@@ -114,7 +114,7 @@ query {
         carryingCapacity:{
           id: "9688348"
           fuelCapacity: 1173.5
-          diesalCapacity: 490.8
+          dieslCapacity: 490.8
           gasOilCapacity: 36
         }
       }
@@ -216,7 +216,7 @@ query detailedSchedules {
         carryingCapacity:{
           id: "9688348"
           fuelCapacity: 1173.5
-          diesalCapacity: 490.8
+          dieselCapacity: 490.8
           gasOilCapacity: 36
         }
       }

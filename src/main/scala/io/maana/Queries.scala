@@ -9,9 +9,11 @@ import com.typesafe.config.ConfigFactory
 import io.circe.Json
 import io.circe.generic.auto._
 import io.circe.parser._
+import io.maana.common.Logger
 import sangria.validation.ValueCoercionViolation
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 //Graphql client imports
 import com.github.jarlakxen.drunk._
@@ -25,6 +27,7 @@ import sangria.macros._
 // TODO Cache Vessels
 
 object Queries {
+  val logger = Logger(this.getClass)
   val conf = ConfigFactory.load()
   // EC for queries
   implicit val executionContext = ExecutionContext.fromExecutor(new java.util.concurrent.ForkJoinPool(16))
@@ -49,9 +52,9 @@ object Queries {
   implicit val system       = Server.system
   implicit val materializer = Server.materializer
 
-  val productMappings = {
+  val productMappings = Try {
     val map0 = scala.io.Source
-      .fromResource("mapping.csv")
+      .fromResource("data/mapping.csv")
       .getLines
       .map { line =>
         val split = line.split(",", 4)
@@ -61,10 +64,10 @@ object Queries {
       }
       .toVector
     // Unity unchanged mapping in case someone enters BP product types
-    val out = (map0 ++ map0.map { a =>
-      a._2 -> a._2
-    }.toSet).toMap
-    out
+    (map0 ++ map0.map(a => a._2 -> a._2).toSet).toMap
+  }.getOrElse {
+    logger.error("File data/mapping.csv is not found")
+    Map.empty[String, String]
   }
 
   val cleaningTimeMultiplierTable: Map[String, Double] = Map(
@@ -336,7 +339,8 @@ object Queries {
               longitude = p.location.longitude,
               //berths needs mapping
               //terminals
-              berths = p.terminals.flatMap(t => t.berths)
+              berths = p.terminals
+                .flatMap(t => t.berths)
                 .map { b =>
                   Schema.Berth(
                     id = b.id,

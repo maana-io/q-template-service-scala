@@ -23,7 +23,7 @@ object Scalars {
     val out = for {
       str <- c.value.as[String]
       date <- parseDate(str).left
-        .map(_ => DecodingFailure(s"invalid Date - $str", List(MoveRight))): Decoder.Result[DateTime]
+               .map(_ => DecodingFailure(s"invalid Date - $str", List(MoveRight))): Decoder.Result[DateTime]
     } yield date
     out
   }

@@ -1,7 +1,7 @@
 import sbt._
 
 object Versions {
-  lazy val drunk          = "2.5.0"
+  lazy val drunk          = "2.4.0"
   lazy val sangria        = "1.4.2"
   lazy val sangriaSlowLog = "0.1.8"
   lazy val sangriaCirce   = "1.2.1"
