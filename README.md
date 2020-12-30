@@ -114,7 +114,7 @@ query {
         carryingCapacity:{
           id: "9688348"
           fuelCapacity: 1173.5
-          dieslCapacity: 490.8
+          dieselCapacity: 490.8
           gasOilCapacity: 36
         }
       }
