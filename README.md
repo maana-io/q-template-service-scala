@@ -84,7 +84,7 @@ query {
                 availableFrom: "2019-12-16T00:00:00.000Z"
                 lastKnownPort: "SAYNB" 
                 lastProduct: ""
-                startingFuel: 616.0
+                startingFuel: 200
         		}
 
       }
@@ -114,7 +114,7 @@ query {
         carryingCapacity:{
           id: "9688348"
           fuelCapacity: 1173.5
-          diesalCapacity: 490.8
+          dieselCapacity: 490.8
           gasOilCapacity: 36
         }
       }
@@ -122,13 +122,14 @@ query {
       }]
     requirements: [
       {id: "CIT20191250", cleanStatus: "c", 
-        longs: [{ product: "dyed gas oil", quantity: 47696.1885, location: "SAYNB", valid: {startDate: "2019-12-18T00:00:00.000Z", endDate: "2019-12-19T23:59:59.000Z" } }] 
-        shorts: [{ product: "dyed gas oil", quantity: 47696.1885, location: "SAJED", valid: {startDate: "2019-12-22T00:00:00.000Z", endDate: "2019-12-23T23:59:59.000Z" } }], 
+        longs: [{id: "CIT20191250", product: "dyed gas oil", quantity: 47696.1885, location: "SAYNB", valid: {id:"CIT20191250",startDate: "2019-12-18T00:00:00.000Z", endDate: "2019-12-19T23:59:59.000Z" } }] 
+        shorts: [{ id:"CIT20191250",product: "dyed gas oil", quantity: 47696.1885, location: "SAGIZ", valid: {id:"CIT20191250", startDate: "2019-12-22T00:00:00.000Z", endDate: "2019-12-23T23:59:59.000Z" } }], 
         
       }
      
     ],
     constants:{
+      id: "constants"
       defaultFuelPrice: 400,
       defaultDieselPrice:650,
       refuelThreshold:400,
@@ -215,7 +216,7 @@ query detailedSchedules {
         carryingCapacity:{
           id: "9688348"
           fuelCapacity: 1173.5
-          diesalCapacity: 490.8
+          dieselCapacity: 490.8
           gasOilCapacity: 36
         }
       }
@@ -223,20 +224,21 @@ query detailedSchedules {
     }]
     requirements: [
       {id: "CIT20191250", cleanStatus: "c", 
-        longs: [{ product: "dyed gas oil", quantity: 47696.1885, location: "SAYNB", valid: {startDate: "2019-12-18T00:00:00.000Z", endDate: "2019-12-19T23:59:59.000Z" } }] 
-        shorts: [{ product: "dyed gas oil", quantity: 47696.1885, location: "SAJED", valid: {startDate: "2019-12-22T00:00:00.000Z", endDate: "2019-12-23T23:59:59.000Z" } }],   
+        longs: [{id:"CIT20191250", product: "dyed gas oil", quantity: 47696.1885, location: "SAYNB", valid: {id:"CIT20191250", startDate: "2019-12-18T00:00:00.000Z", endDate: "2019-12-19T23:59:59.000Z" } }] 
+        shorts: [{id: "CIT20191250", product: "dyed gas oil", quantity: 47696.1885, location: "SAJED", valid: {id: "CIT20191250",startDate: "2019-12-22T00:00:00.000Z", endDate: "2019-12-23T23:59:59.000Z" } }],   
       }
     ]
 		
   ){
     vessel
     requirements{
+      id
       cost
       actions{
+        id
         type
       }
     }
     
   }
 }
-

@@ -1,19 +1,17 @@
-package io.maana
-
-import java.nio.charset.Charset
+package io.maana.http
 
 import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.headers.Accept
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server._
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshaller}
 import akka.util.ByteString
-
 import sangria.ast.Document
 import sangria.parser.QueryParser
 import sangria.renderer.{QueryRenderer, QueryRendererConfig}
 
+import java.nio.charset.Charset
 import scala.collection.immutable.Seq
 
 object GraphQLRequestUnmarshaller {
@@ -30,7 +28,9 @@ object GraphQLRequestUnmarshaller {
   def mediaTypes: Seq[MediaType.WithFixedCharset] =
     List(`application/graphql`)
 
-  implicit final def documentMarshaller(implicit config: QueryRendererConfig = QueryRenderer.Compact): ToEntityMarshaller[Document] =
+  implicit final def documentMarshaller(
+      implicit config: QueryRendererConfig = QueryRenderer.Compact
+  ): ToEntityMarshaller[Document] =
     Marshaller.oneOf(mediaTypes: _*) { mediaType ⇒
       Marshaller.withFixedContentType(ContentType(mediaType)) { json ⇒
         HttpEntity(mediaType, QueryRenderer.render(json, config))
