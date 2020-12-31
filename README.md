@@ -9,7 +9,7 @@ build the container with
 sbt docker:publishLocal
 ```
 
-docker run -p 8080:8080 maana_fast_scheduler:latest
+docker run -p 8080:8080 maana_scala_template_service:v1.0.0
 
 ### Service Endpoint
 ```
