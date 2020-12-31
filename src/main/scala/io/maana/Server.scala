@@ -133,14 +133,10 @@ object Server extends App with CorsSupport {
         redirect("/graphql", PermanentRedirect)
       }
 
-  //build graphql client here?
-  object Client {
+  //build graphql client here
+  /*object Client {
     val client = MaanaClient().maanaClient
-  }
-
-  // force initialization of one offs
-  //this requires a connection to the ports service
-  Shared.init(Client.client)
+  }*/
 
   val port = sys.props.get("http.port").fold(8080)(_.toInt)
   println(s"Server listening on 0.0.0.0:$port")

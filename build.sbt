@@ -1,10 +1,10 @@
-version := sys.env.getOrElse("BUILD_VERSION", "v1.0.3")
+version := sys.env.getOrElse("BUILD_VERSION", "v1.0.0")
 
-name := sys.env.getOrElse("NAME", "maana_fast_scheduler")
+name := sys.env.getOrElse("NAME", "maana_scala_template_service")
 
-packageName in Docker := sys.env.getOrElse("PACKAGE_NAME", "fanarcr.azurecr.io/maana_fast_scheduler")
+packageName in Docker := sys.env.getOrElse("PACKAGE_NAME", "maana_scala_template_service")
 
-description := "Maana's Shipping Fast Scheduler Service"
+description := "Maana Q Service Scala Tempalte"
 
 scalaVersion := "2.12.6"
 scalacOptions ++= Seq("-deprecation", "-feature")
