@@ -24,9 +24,8 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 object Schema {
   case class SchemaError(msg: String) extends Error(msg) with UserFacingError
 
-  val conf                   = ConfigFactory.load()
-  val executionContext       = ExecutionContext.fromExecutor(new java.util.concurrent.ForkJoinPool(50))
-  val useGlobalDistanceCache = conf.getBoolean("app.globalDistanceCache")
+  val conf             = ConfigFactory.load()
+  val executionContext = ExecutionContext.fromExecutor(new java.util.concurrent.ForkJoinPool(50))
 
   //create case class for input types
   // can move these to separate objects and import them here
